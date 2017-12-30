@@ -1,0 +1,23 @@
+Code::Stats extension for Notepad++ is written and
+maintained by p0358 (this is a nickname).
+
+-------------------------------------------------------------------------------
+
+It was originally based on WakaTime extension for Notepad++
+(https://github.com/wakatime/notepadpp-wakatime) and thus
+its authors are stated below.
+
+WakaTime is written and maintained by Alan Hamlett and
+various contributors:
+
+
+Development Lead
+----------------
+
+- Alan Hamlett <alan.hamlett@gmail.com>
+
+
+Patches and Suggestions
+-----------------------
+
+- Carlos Henrique Guardão Gandarez <gandarez@gmail.com>
