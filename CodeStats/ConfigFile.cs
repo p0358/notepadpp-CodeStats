@@ -1,5 +1,4 @@
 ﻿using Kbg.NppPluginNET.PluginInfrastructure;
-using System;
 using System.IO;
 using System.Text;
 

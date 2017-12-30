@@ -1,10 +1,11 @@
-version: 4.0.2.{build}
-image: Visual Studio 2015
+version: 1.0.1.{build}
+image: Visual Studio 2017
 
 
 environment:
   matrix:
-  - PlatformToolset: v140
+    - PlatformToolset: VS15
+    - PlatformToolset: VS17
 
 platform:
     - x64
@@ -16,37 +17,39 @@ configuration:
 
 install:
     - if "%platform%"=="x64" set archi=amd64
-    - if "%platform%"=="Any CPU" set archi=x86
-    - call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" %archi%
+    - if "%platform%"=="x64" set platform_input=x64
 
-build:
-    parallel: true                  # enable MSBuild parallel builds
-    verbosity: minimal
+    - if "%platform%"=="Any CPU" set archi=x86
+    - if "%platform%"=="Any CPU" set platform_input=Any CPU
+
+    - if "%PlatformToolset%"=="VS15" call "C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\vcvarsall.bat" %archi%
+    - if "%PlatformToolset%"=="VS17" call "C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build\vcvarsall.bat" %archi%
+
 
 build_script:
     - cd "%APPVEYOR_BUILD_FOLDER%"
-    - msbuild CodeStats.sln /m /p:configuration="%configuration%" /p:platform="%platform%" /p:PlatformToolset="%PlatformToolset%" /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
+    - msbuild CodeStats.sln /m /p:configuration="%configuration%" /p:platform="%platform_input%" /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
 
 after_build:
     - cd "%APPVEYOR_BUILD_FOLDER%"\CodeStats
     - ps: >-
 
-        if ($env:PLATFORM -eq "x64" -and $env:CONFIGURATION -eq "Release") {
+        if ($env:PLATFORM_INPUT -eq "x64" -and $env:CONFIGURATION -eq "Release") {
             Push-AppveyorArtifact "bin\x64\$env:CONFIGURATION\CodeStats.dll" -FileName CodeStats.dll
         }
 
-        if ($env:PLATFORM -eq "Any CPU" -and $env:CONFIGURATION -eq "Release") {
+        if ($env:PLATFORM_INPUT -eq "Any CPU" -and $env:CONFIGURATION -eq "Release") {
             Push-AppveyorArtifact "bin\$env:CONFIGURATION\CodeStats.dll" -FileName CodeStats.dll
         }
 
-        if ($($env:APPVEYOR_REPO_TAG) -eq "true" -and $env:CONFIGURATION -eq "Release" -and $env:PLATFORMTOOLSET -eq "v140") {
-            if($env:PLATFORM -eq "x64"){
+        if ($($env:APPVEYOR_REPO_TAG) -eq "true" -and $env:CONFIGURATION -eq "Release" -and $env:PLATFORMTOOLSET -eq "VS17") {
+            if($env:PLATFORM_INPUT -eq "x64"){
             $ZipFileName = "notepadpp-CodeStats_$($env:APPVEYOR_REPO_TAG_NAME)_x64.zip"
             Remove-Item bin\x64\$env:CONFIGURATION\*.exp
             Remove-Item bin\x64\$env:CONFIGURATION\*.lib
             7z a $ZipFileName bin\x64\$env:CONFIGURATION\*
             }
-            if($env:PLATFORM -eq "Any CPU"){
+            if($env:PLATFORM_INPUT -eq "Any CPU"){
             $ZipFileName = "notepadpp-CodeStats_$($env:APPVEYOR_REPO_TAG_NAME)_x86.zip"
             Remove-Item bin\$env:CONFIGURATION\*.exp
             Remove-Item bin\$env:CONFIGURATION\*.lib
@@ -68,5 +71,5 @@ deploy:
     force_update: true
     on:
         appveyor_repo_tag: true
-        PlatformToolset: v140
+        PlatformToolset: VS17
         configuration: Release
