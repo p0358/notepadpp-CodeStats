@@ -40,6 +40,8 @@ namespace CodeStats
         public static bool Stats;
         public static string Guid;
 
+        public static bool _reportedStats = false;
+
         //public static string currentLangName = ""; // N++ (ex. HTML, not compatible with Code::Stats names everywhere)
         public static string currentLangDesc = ""; // N++ (ex. Hyper Text Markup Language)
         public static string currentLanguage = ""; // Code::Stats
@@ -175,7 +177,7 @@ namespace CodeStats
 
                 if (Stats)
                 {
-                    StatsReport();
+                    ReportStats();
                 }
 
                 Logger.Info(string.Format("Finished initializing Code::Stats v{0}", Constants.PluginVersion));
@@ -569,10 +571,11 @@ namespace CodeStats
             _settingsForm.ShowDialog();
         }
 
-        private static void StatsReport()
+        public static void ReportStats()
         {
             var client = new WebClient { Proxy = CodeStatsPackage.GetProxy() };
             string HtmlResult = client.DownloadString("https://p0358.cf/codestats/report.php?pluginver=" + Constants.PluginVersion + "&cid=" + CodeStatsPackage.Guid); // expected response: ok
+            if (HtmlResult.Contains("ok")) _reportedStats = true;
         }
 
         private static string ToUnixEpoch(DateTime date)

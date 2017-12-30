@@ -45,7 +45,13 @@ namespace CodeStats.Forms
                     _CodeStatsConfigFile.Debug = chkDebugMode.Checked;
                     _CodeStatsConfigFile.Stats = chkStats.Checked;
                     _CodeStatsConfigFile.Save();
-                    OnConfigSaved();                    
+
+                    if (chkStats.Checked && !CodeStatsPackage._reportedStats)
+                    {
+                        CodeStatsPackage.ReportStats();
+                    }
+
+                    OnConfigSaved();
                 }
                 else
                 {
