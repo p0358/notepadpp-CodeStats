@@ -8,8 +8,10 @@ namespace CodeStats
     internal static class Constants
     {
         internal const string PluginName = "Code::Stats";
+        internal const string PluginNameSafe = "CodeStats";
         internal const string PluginKey = "notepadpp-CodeStats";
         internal static string PluginVersion = string.Format("{0}.{1}.{2}", CodeStatsPackage.CoreAssembly.Version.Major, CodeStatsPackage.CoreAssembly.Version.Minor, CodeStatsPackage.CoreAssembly.Version.Build);
+        internal static string PluginUserAgent = string.Format("code-stats-notepadpp/{0}", PluginVersion);
         internal const string EditorName = "notepadpp";
         internal static string EditorVersion {
             get
@@ -26,6 +28,7 @@ namespace CodeStats
             var regex = new Regex(@"\[assembly: AssemblyFileVersion\(\""(([0-9]+\.?){3})\""\)\]");
 
             var client = new WebClient { Proxy = CodeStatsPackage.GetProxy() };
+            client.Headers[HttpRequestHeader.UserAgent] = Constants.PluginUserAgent;
 
             try
             {
@@ -47,7 +50,7 @@ namespace CodeStats
             }
             catch (Exception ex)
             {
-                Logger.Error("Exception when checking current CodeStats plugin version: ", ex);
+                Logger.Error("Exception when checking current CodeStats plugin version", ex);
             }
             return string.Empty;
         };

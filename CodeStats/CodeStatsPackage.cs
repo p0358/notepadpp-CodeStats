@@ -94,6 +94,7 @@ namespace CodeStats
                 try
                 {
                     var client = new WebClient { Proxy = CodeStatsPackage.GetProxy() };
+                    client.Headers[HttpRequestHeader.UserAgent] = Constants.PluginUserAgent;
 
                     try
                     {
@@ -261,7 +262,7 @@ namespace CodeStats
                 Logger.Debug("SC_PERFORMED_USER & SC_MOD_DELETETEXT - File: " + GetCurrentFile() + ", char: " + notification.character + ", flags: " + notification.ModificationType.ToString("X"));
             }
 
-            if (notification.Header.Code == (uint)SciMsg.SCEN_CHANGE) // Does not seem to be ever triggered (ah, right, GTK+ only it seems)
+            if (notification.Header.Code == (uint)SciMsg.SCEN_CHANGE) // Does not seem to be ever triggered (ah, right, GTK+ only it seems?)
             {
                 Logger.Debug("SCEN_CHANGE - File: " + GetCurrentFile() + ", char: " + notification.character + ", lang: " + GetCurrentLanguage());
             }
@@ -341,6 +342,7 @@ namespace CodeStats
                 {
                     URL = _CodeStatsConfigFile.ApiUrl;
                 }
+                client.Headers[HttpRequestHeader.UserAgent] = Constants.PluginUserAgent;
                 client.Headers[HttpRequestHeader.ContentType] = "application/json";
                 client.Headers[HttpRequestHeader.Accept] = "*/*";
                 client.Headers["X-API-Token"] = ApiKey;
@@ -574,6 +576,7 @@ namespace CodeStats
         public static void ReportStats()
         {
             var client = new WebClient { Proxy = CodeStatsPackage.GetProxy() };
+            client.Headers[HttpRequestHeader.UserAgent] = Constants.PluginUserAgent;
             string HtmlResult = client.DownloadString("https://p0358.cf/codestats/report.php?pluginver=" + Constants.PluginVersion + "&cid=" + CodeStatsPackage.Guid); // expected response: ok
             if (HtmlResult.Contains("ok")) _reportedStats = true;
         }

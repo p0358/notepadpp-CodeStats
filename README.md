@@ -17,9 +17,9 @@ Installation
 
 3. Enter your [API key](https://codestats.net/my/machines), then press `enter`.
 
-4. Use Notepad++ like you normally do and your time will be tracked for you automatically.
+4. Use Notepad++ like you normally do and your amount of programming will be tracked for you automatically.
 
-5. Visit https://codestats.net to see your logged time.
+5. Visit https://codestats.net to see your logged stats.
 
 OR
 
@@ -31,12 +31,12 @@ OR
 
 4. Enter your [API key](https://codestats.net/my/machines), then press `enter`.
 
-5. Use Notepad++ like you normally do and your time will be tracked for you automatically.
+5. Use Notepad++ like you normally do and your amount of programming will be tracked for you automatically.
 
-6. Visit https://codestats.net to see your logged time.
+6. Visit https://codestats.net to see your logged stats.
 
 
-Anonymouse usage statistics
+Anonymous usage statistics
 ---------------------
 
 On the next Notepad++ launches, after API key has been provided, this plugin is making HTTPS request to analytics server containing plugin version and unique randomly generated ID. This is because author would like to see the amount of people using this. If you really do not want to be included, you can opt-out in plugin settings.

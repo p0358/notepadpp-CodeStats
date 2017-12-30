@@ -67,8 +67,14 @@ namespace CodeStats
             if (!string.IsNullOrEmpty(ApiKey))
                 NativeMethods.WritePrivateProfileString("settings", "api_key", ApiKey.Trim(), _configFilepath);
 
-            if (!string.IsNullOrEmpty(ApiUrl))
+            if (ApiUrl == Constants.ApiMyPulsesEndpoint || string.IsNullOrEmpty(ApiUrl))
+            {
+                NativeMethods.WritePrivateProfileString("settings", "api_url", string.Empty, _configFilepath);
+            }
+            else if (!string.IsNullOrEmpty(ApiUrl))
+            {
                 NativeMethods.WritePrivateProfileString("settings", "api_url", ApiUrl.Trim(), _configFilepath);
+            }
 
             NativeMethods.WritePrivateProfileString("settings", "stats", Stats.ToString().ToLower(), _configFilepath);
             NativeMethods.WritePrivateProfileString("settings", "guid", this.Guid, _configFilepath);

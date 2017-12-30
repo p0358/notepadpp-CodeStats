@@ -24,6 +24,14 @@ namespace CodeStats.Forms
                 txtProxy.Text = _CodeStatsConfigFile.Proxy;
                 chkDebugMode.Checked = _CodeStatsConfigFile.Debug;
                 chkStats.Checked = _CodeStatsConfigFile.Stats;
+                if (String.IsNullOrWhiteSpace(_CodeStatsConfigFile.ApiKey))
+                {
+                    txtAPIURL.Text = Constants.ApiMyPulsesEndpoint;
+                }
+                else
+                {
+                    txtAPIURL.Text = _CodeStatsConfigFile.ApiKey;
+                }
             }
             catch (Exception ex)
             {
@@ -44,6 +52,16 @@ namespace CodeStats.Forms
                     _CodeStatsConfigFile.Proxy = txtProxy.Text.Trim();
                     _CodeStatsConfigFile.Debug = chkDebugMode.Checked;
                     _CodeStatsConfigFile.Stats = chkStats.Checked;
+
+                    if (String.IsNullOrWhiteSpace(txtAPIURL.Text) || txtAPIURL.Text == Constants.ApiMyPulsesEndpoint)
+                    {
+                        _CodeStatsConfigFile.ApiKey = Constants.ApiMyPulsesEndpoint;
+                    }
+                    else
+                    {
+                        _CodeStatsConfigFile.ApiKey = txtAPIURL.Text;
+                    }
+
                     _CodeStatsConfigFile.Save();
 
                     if (chkStats.Checked && !CodeStatsPackage._reportedStats)
@@ -72,9 +90,9 @@ namespace CodeStats.Forms
             if (handler != null) handler(this, EventArgs.Empty);
         }
 
-        private void label2_Click(object sender, EventArgs e)
+        /*private void label2_Click(object sender, EventArgs e)
         {
 
-        }
+        }*/
     }
 }
