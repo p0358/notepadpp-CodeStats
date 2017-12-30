@@ -55,11 +55,12 @@ namespace CodeStats.Forms
 
                     if (String.IsNullOrWhiteSpace(txtAPIURL.Text) || txtAPIURL.Text == Constants.ApiMyPulsesEndpoint)
                     {
-                        _CodeStatsConfigFile.ApiKey = Constants.ApiMyPulsesEndpoint;
+                        //_CodeStatsConfigFile.ApiUrl = Constants.ApiMyPulsesEndpoint;
+                        _CodeStatsConfigFile.ApiUrl = string.Empty;
                     }
                     else
                     {
-                        _CodeStatsConfigFile.ApiKey = txtAPIURL.Text;
+                        _CodeStatsConfigFile.ApiUrl = txtAPIURL.Text;
                     }
 
                     _CodeStatsConfigFile.Save();
@@ -89,10 +90,5 @@ namespace CodeStats.Forms
             var handler = ConfigSaved;
             if (handler != null) handler(this, EventArgs.Empty);
         }
-
-        /*private void label2_Click(object sender, EventArgs e)
-        {
-
-        }*/
     }
 }
