@@ -1,7 +1,7 @@
-﻿using System;
+﻿using Kbg.NppPluginNET.PluginInfrastructure;
+using System;
 using System.Net;
 using System.Text.RegularExpressions;
-using Kbg.NppPluginNET.PluginInfrastructure;
 
 namespace CodeStats
 {

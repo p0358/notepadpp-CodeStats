@@ -1,21 +1,18 @@
-﻿using System;
+﻿using Kbg.NppPluginNET.PluginInfrastructure;
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
+using System.Net;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Windows.Forms;
-using System.Net;
-using Task = System.Threading.Tasks.Task;
-using System.Collections.Concurrent;
-using System.Collections;
 using System.Timers;
 using System.Web.Script.Serialization;
-using System.IO;
-using System.Collections.Generic;
-
-using Kbg.NppPluginNET.PluginInfrastructure;
-//using Newtonsoft.Json;
+using System.Windows.Forms;
+using Task = System.Threading.Tasks.Task;
 
 namespace CodeStats
 {
