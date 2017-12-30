@@ -24,13 +24,13 @@ namespace CodeStats.Forms
                 txtProxy.Text = _CodeStatsConfigFile.Proxy;
                 chkDebugMode.Checked = _CodeStatsConfigFile.Debug;
                 chkStats.Checked = _CodeStatsConfigFile.Stats;
-                if (String.IsNullOrWhiteSpace(_CodeStatsConfigFile.ApiKey))
+                if (String.IsNullOrWhiteSpace(_CodeStatsConfigFile.ApiUrl))
                 {
                     txtAPIURL.Text = Constants.ApiMyPulsesEndpoint;
                 }
                 else
                 {
-                    txtAPIURL.Text = _CodeStatsConfigFile.ApiKey;
+                    txtAPIURL.Text = _CodeStatsConfigFile.ApiUrl;
                 }
             }
             catch (Exception ex)

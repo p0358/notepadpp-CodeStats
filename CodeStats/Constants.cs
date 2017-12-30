@@ -41,7 +41,7 @@ namespace CodeStats
                     var regexVersion = new Regex("([0-9]+)");
                     var match2 = regexVersion.Matches(grp1.Value);
                     return string.Format("{0}.{1}.{2}", match2[0].Value, match2[1].Value, match2[2].Value);*/
-                    return match.Groups[2].Value;
+                    return match.Groups[1].Value;
                 }
                 else
                 {

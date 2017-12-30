@@ -158,7 +158,7 @@ namespace CodeStats
                     string latest = Constants.LatestPluginVersion();
                     if (Constants.PluginVersion != latest && !String.IsNullOrWhiteSpace(latest))
                     {
-                        MessageBox.Show("There is Code::Stats plugin update available!\nDownload it from Plugin Manager or GitHub.", "Code::Stats");
+                        MessageBox.Show("There is Code::Stats plugin update available!\nDownload it from Plugin Manager or GitHub.\nYour version: " + Constants.PluginVersion + "\nLatest: " + latest, "Code::Stats");
                     }
                 }
                 catch { }
