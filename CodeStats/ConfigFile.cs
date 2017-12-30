@@ -64,14 +64,14 @@ namespace CodeStats
 
         internal void Save()
         {
-            if (!string.IsNullOrEmpty(ApiKey))
+            if (!string.IsNullOrWhiteSpace(ApiKey))
                 NativeMethods.WritePrivateProfileString("settings", "api_key", ApiKey.Trim(), _configFilepath);
 
-            if (ApiUrl == Constants.ApiMyPulsesEndpoint || string.IsNullOrEmpty(ApiUrl))
+            if (ApiUrl == Constants.ApiMyPulsesEndpoint || string.IsNullOrWhiteSpace(ApiUrl))
             {
                 NativeMethods.WritePrivateProfileString("settings", "api_url", string.Empty, _configFilepath);
             }
-            else if (!string.IsNullOrEmpty(ApiUrl))
+            else if (!string.IsNullOrWhiteSpace(ApiUrl))
             {
                 NativeMethods.WritePrivateProfileString("settings", "api_url", ApiUrl.Trim(), _configFilepath);
             }
