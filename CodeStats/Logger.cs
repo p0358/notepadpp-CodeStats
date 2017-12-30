@@ -50,7 +50,7 @@ namespace CodeStats
                 var writer = Setup();
                 if (writer == null) return;
 
-                writer.WriteLine("[Code::Stats {0} {1}] {2}", Enum.GetName(level.GetType(), level), DateTime.Now.ToString("hh:mm:ss tt"), msg);            
+                writer.WriteLine("[Code::Stats {0} {1}] {2}", Enum.GetName(level.GetType(), level), DateTime.Now.ToString("HH:mm:ss"), msg);            
                 writer.Flush();
                 writer.Close();
             }
