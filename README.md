@@ -48,3 +48,9 @@ Troubleshooting
 CodeStats for Notepad++ logs to `C:\Users\<user>\AppData\Roaming\Notepad++\plugins\config\CodeStats.log`.
 
 Turn on debug mode (click the CodeStats icon in Notepad++) then check your log file.
+
+
+Other info
+----------
+
+This plugin was originally based on [notepadpp-WakaTime](https://github.com/wakatime/notepadpp-wakatime)
