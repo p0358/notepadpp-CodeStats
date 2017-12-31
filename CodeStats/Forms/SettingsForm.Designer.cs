@@ -52,11 +52,11 @@
             // lblAPIKey
             // 
             this.lblAPIKey.AutoSize = true;
-            this.lblAPIKey.Location = new System.Drawing.Point(65, 16);
+            this.lblAPIKey.Location = new System.Drawing.Point(54, 16);
             this.lblAPIKey.Name = "lblAPIKey";
-            this.lblAPIKey.Size = new System.Drawing.Size(50, 15);
+            this.lblAPIKey.Size = new System.Drawing.Size(61, 15);
             this.lblAPIKey.TabIndex = 0;
-            this.lblAPIKey.Text = "API Key:";
+            this.lblAPIKey.Text = "API token:";
             // 
             // txtAPIKey
             // 
@@ -158,9 +158,9 @@
             this.label4.AutoSize = true;
             this.label4.Location = new System.Drawing.Point(121, 69);
             this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(269, 15);
+            this.label4.Size = new System.Drawing.Size(293, 15);
             this.label4.TabIndex = 11;
-            this.label4.Text = "Only change this if you know what you are doing.";
+            this.label4.Text = "Only change this URL if you know what you are doing.";
             // 
             // SettingsForm
             // 

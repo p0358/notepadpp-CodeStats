@@ -45,12 +45,12 @@ namespace CodeStats
                 }
                 else
                 {
-                    Logger.Warning("Couldn't auto resolve CodeStats plugin version");
+                    Logger.Warning("Could not auto-resolve Code::Stats plugin version");
                 }
             }
             catch (Exception ex)
             {
-                Logger.Error("Exception when checking current CodeStats plugin version", ex);
+                Logger.Error("Exception when checking current Code::Stats plugin version", ex);
             }
             return string.Empty;
         };

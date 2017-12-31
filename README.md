@@ -1,6 +1,8 @@
 notepadpp-CodeStats
 =====================
 
+[![Build status](https://ci.appveyor.com/api/projects/status/c34pe9fpnstehfe0?svg=true)](https://ci.appveyor.com/project/p0358/notepadpp-codestats)
+
 Code::Stats - Write code, level up, show off! A free stats tracking service for programmers. This plugin enables XP tracking in Notepad++.
 
 
@@ -15,7 +17,7 @@ Installation
 
 4. Restart Notepad++.
 
-3. Enter your [API key](https://codestats.net/my/machines), then press `enter`.
+3. Enter your [API token](https://codestats.net/my/machines), then press `enter`.
 
 4. Use Notepad++ like you normally do and your amount of programming will be tracked for you automatically.
 
@@ -29,7 +31,7 @@ OR
 
 3. Start/restart Notepad++.
 
-4. Enter your [API key](https://codestats.net/my/machines), then press `enter`.
+4. Enter your [API token](https://codestats.net/my/machines), then press `enter`.
 
 5. Use Notepad++ like you normally do and your amount of programming will be tracked for you automatically.
 
@@ -39,7 +41,7 @@ OR
 Anonymous usage statistics
 ---------------------
 
-On the next Notepad++ launches, after API key has been provided, this plugin is making HTTPS request to analytics server containing plugin version and unique randomly generated ID. This is because author would like to see the amount of people using this. If you really do not want to be included, you can opt-out in plugin settings.
+On the next Notepad++ launches, after API token has been provided, this plugin is making HTTPS request to analytics server containing plugin version and unique randomly generated ID. This is because author would like to see the amount of people using this. If you really do not want to be included, you can opt-out in plugin settings.
 
 
 Troubleshooting

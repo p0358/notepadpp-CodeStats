@@ -57,7 +57,7 @@ namespace CodeStats
             catch (Exception ex)
             {
                 MessageBox.Show(ex.ToString(), "Error writing to log file", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
-                MessageBox.Show(string.Format("{0}\\{1}.log", configDir, Constants.PluginName), "Error writing to log file", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                //MessageBox.Show(string.Format("{0}\\{1}.log", configDir, Constants.PluginName), "Error writing to log file", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
             }
         }
 

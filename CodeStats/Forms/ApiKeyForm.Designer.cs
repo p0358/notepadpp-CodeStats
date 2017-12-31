@@ -46,16 +46,16 @@
             this.lblAPIKey.AutoSize = true;
             this.lblAPIKey.Location = new System.Drawing.Point(12, 45);
             this.lblAPIKey.Name = "lblAPIKey";
-            this.lblAPIKey.Size = new System.Drawing.Size(112, 15);
+            this.lblAPIKey.Size = new System.Drawing.Size(123, 15);
             this.lblAPIKey.TabIndex = 0;
-            this.lblAPIKey.Text = "Code::Stats API Key:";
+            this.lblAPIKey.Text = "Code::Stats API token:";
             // 
             // txtAPIKey
             // 
-            this.txtAPIKey.Location = new System.Drawing.Point(130, 41);
+            this.txtAPIKey.Location = new System.Drawing.Point(140, 41);
             this.txtAPIKey.MaxLength = 255;
             this.txtAPIKey.Name = "txtAPIKey";
-            this.txtAPIKey.Size = new System.Drawing.Size(243, 23);
+            this.txtAPIKey.Size = new System.Drawing.Size(233, 23);
             this.txtAPIKey.TabIndex = 1;
             // 
             // btnOk
@@ -72,12 +72,11 @@
             // 
             // linkLabel1
             // 
-            this.linkLabel1.AutoSize = true;
             this.linkLabel1.LinkArea = new System.Windows.Forms.LinkArea(0, 90);
             this.linkLabel1.LinkBehavior = System.Windows.Forms.LinkBehavior.AlwaysUnderline;
             this.linkLabel1.Location = new System.Drawing.Point(140, 9);
             this.linkLabel1.Name = "linkLabel1";
-            this.linkLabel1.Size = new System.Drawing.Size(117, 21);
+            this.linkLabel1.Size = new System.Drawing.Size(117, 15);
             this.linkLabel1.TabIndex = 4;
             this.linkLabel1.TabStop = true;
             this.linkLabel1.Text = "https://codestats.net";
@@ -87,7 +86,7 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(13, 11);
+            this.label2.Location = new System.Drawing.Point(12, 9);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(127, 15);
             this.label2.TabIndex = 5;
@@ -97,6 +96,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.AutoSize = true;
             this.ClientSize = new System.Drawing.Size(391, 109);
             this.Controls.Add(this.linkLabel1);
             this.Controls.Add(this.label2);

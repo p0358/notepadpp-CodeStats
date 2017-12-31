@@ -35,7 +35,7 @@ namespace CodeStats.Forms
             }
             catch (Exception ex)
             {
-                Logger.Error("Error when loading form SettingsForm:", ex);
+                Logger.Error("Error when loading form SettingsForm", ex);
                 MessageBox.Show(ex.Message);
             }
         }
@@ -46,8 +46,8 @@ namespace CodeStats.Forms
             {
                 string apiKey = txtAPIKey.Text.Trim();       
                                      
-                if (true)
-                {
+                //if (true)
+                //{
                     _CodeStatsConfigFile.ApiKey = apiKey;
                     _CodeStatsConfigFile.Proxy = txtProxy.Text.Trim();
                     _CodeStatsConfigFile.Debug = chkDebugMode.Checked;
@@ -71,16 +71,16 @@ namespace CodeStats.Forms
                     }
 
                     OnConfigSaved();
-                }
-                else
+                /*}
+                else // - kept in case we check API tokens in future
                 {
-                    MessageBox.Show(@"Please enter valid Api Key.");
+                    MessageBox.Show(@"Please enter valid API token.");
                     DialogResult = DialogResult.None; // do not close dialog box
-                }
+                }*/
             }
             catch (Exception ex)
             {
-                Logger.Error("Error when saving data from SettingsForm:", ex);
+                Logger.Error("Error when saving data from SettingsForm", ex);
                 MessageBox.Show(ex.Message);
             }
         }

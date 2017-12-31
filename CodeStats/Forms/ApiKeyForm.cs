@@ -31,17 +31,17 @@ namespace CodeStats.Forms
             try
             {
                 string apiKey = txtAPIKey.Text.Trim();                         
-                if (true)
-                {
+                //if (true)
+                //{
                     _CodeStatsConfigFile.ApiKey = apiKey;
                     _CodeStatsConfigFile.Save();
                     CodeStatsPackage.ApiKey = apiKey;
-                }
-                else
+                /*}
+                else // - kept in case we check API tokens in future
                 {
-                    MessageBox.Show("Please enter valid Api Key.");
+                    MessageBox.Show("Please enter valid API tokens.");
                     DialogResult = DialogResult.None; // do not close dialog box
-                }
+                }*/
             }
             catch (Exception ex)
             {

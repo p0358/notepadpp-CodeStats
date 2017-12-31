@@ -38,6 +38,7 @@ namespace CodeStats
         public static string Guid;
 
         public static bool _reportedStats = false;
+        public static bool _shownInvalidApiTokenMessage = false;
 
         //public static string currentLangName = ""; // N++ (ex. HTML, not compatible with Code::Stats names everywhere)
         public static string currentLangDesc = ""; // N++ (ex. Hyper Text Markup Language)
@@ -163,7 +164,7 @@ namespace CodeStats
                 if (string.IsNullOrEmpty(ApiKey))
                 {
                     Stats = false; // Disable stats reporting for this session/launch
-                    PromptApiKey(); // Prompt for api key if not already set
+                    PromptApiKey(); // Prompt for API token if not already set
                 } 
 
                 currentPulse = new Pulse();
@@ -316,7 +317,7 @@ namespace CodeStats
 
         private static void ProcessPulses()
         {
-            if (!currentPulse.isEmpty() && EnoughTimePassed(DateTime.Now))
+            if ((!currentPulse.isEmpty() || !pulseQueue.IsEmpty) && EnoughTimePassed(DateTime.Now))
             {
                 pulseQueue.Enqueue(currentPulse);
                 currentPulse = new Pulse();
@@ -324,7 +325,7 @@ namespace CodeStats
 
                 if (String.IsNullOrWhiteSpace(ApiKey))
                 {
-                    Logger.Debug("No API key - cannot pulse!");
+                    Logger.Debug("No API token - cannot pulse!");
                     return;
                 }
 
@@ -366,12 +367,30 @@ namespace CodeStats
                         catch (WebException ex)
                         {
                             error = true;
-                            Logger.Error("Could not pulse. Are you behind a proxy? Try setting a proxy in Code::Stats settings with format https://user:pass@host:port. Exception Traceback:", ex);
+                            if (ex.Status == WebExceptionStatus.ProtocolError)
+                            {
+                                var response = ex.Response as HttpWebResponse;
+                                if (response != null && (int)response.StatusCode == 403)
+                                {
+                                    if (!_shownInvalidApiTokenMessage) // we want to inform user only once, and if he does not provide the token, let's not bomb him with error each time after he types something
+                                    {
+                                        MessageBox.Show("Could not pulse. Please make sure you entered a valid API token in Code::Stats settings.", "Code::Stats - error 403", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                        _shownInvalidApiTokenMessage = true;
+                                    }
+                                    Logger.Error("Could not pulse. Please make sure you entered a valid API token in Code::Stats settings.", ex);
+                                }
+                                else
+                                {
+                                    // response==null - no http status code available
+                                    Logger.Error("Could not pulse. Are you behind a proxy? Try setting a proxy in Code::Stats settings with format https://user:pass@host:port. Exception Traceback", ex);
+                                }
+                            }
+                            else Logger.Error("Could not pulse. Are you behind a proxy? Try setting a proxy in Code::Stats settings with format https://user:pass@host:port. Exception Traceback", ex);
                         }
                         catch (Exception ex)
                         {
                             error = true;
-                            Logger.Error("Error pulsing. Exception Traceback:", ex);
+                            Logger.Error("Error pulsing. Exception Traceback", ex);
                         }
 
                         if (error)
@@ -459,7 +478,7 @@ namespace CodeStats
                 }
                 catch (KeyNotFoundException)
                 {
-                    Logger.Info("Key = \"" + extension + "\" is not found.");
+                    Logger.Debug("Extension \"" + extension + "\" is not found in extension mappings file, using language type selected in Notepad++ instead.");
                     found = false;
                 }
             }
@@ -555,12 +574,12 @@ namespace CodeStats
             Debug = _CodeStatsConfigFile.Debug;
             Proxy = _CodeStatsConfigFile.Proxy;
             Stats = _CodeStatsConfigFile.Stats;
-            CodeStatsPackage.Guid = _CodeStatsConfigFile.Guid;
+            @Guid = _CodeStatsConfigFile.Guid;
         }
 
         private static void PromptApiKey()
         {
-            Logger.Info("Please input your api key into the Code::Stats window.");
+            Logger.Info("Please input your API token into the Code::Stats window.");
             var form = new CodeStats.Forms.ApiKeyForm();
             form.ShowDialog();
         }
