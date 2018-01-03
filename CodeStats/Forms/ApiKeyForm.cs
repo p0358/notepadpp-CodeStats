@@ -39,7 +39,7 @@ namespace CodeStats.Forms
                 /*}
                 else // - kept in case we check API tokens in future
                 {
-                    MessageBox.Show("Please enter valid API tokens.");
+                    MessageBox.Show("Please enter valid API token.");
                     DialogResult = DialogResult.None; // do not close dialog box
                 }*/
             }
