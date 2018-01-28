@@ -5,7 +5,7 @@ namespace CodeStats
 {
     static class ProcessorArchitectureHelper
     {
-        static readonly bool Is64BitProcess = (IntPtr.Size == 8);
+        public static readonly bool Is64BitProcess = (IntPtr.Size == 8);
         internal static bool Is64BitOperatingSystem = Is64BitProcess || InternalCheckIsWow64();
 
         public static bool InternalCheckIsWow64()

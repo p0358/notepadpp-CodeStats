@@ -161,13 +161,13 @@ namespace CodeStats
                 }
                 catch { }
 
+                currentPulse = new Pulse();
+
                 if (string.IsNullOrEmpty(ApiKey))
                 {
                     Stats = false; // Disable stats reporting for this session/launch
                     PromptApiKey(); // Prompt for API token if not already set
-                } 
-
-                currentPulse = new Pulse();
+                }
 
                 // setup timer to process queued pulses
                 timer.Interval = pulseFrequency;
@@ -183,7 +183,7 @@ namespace CodeStats
             }
             catch (Exception ex)
             {
-                Logger.Error("Error Initializing CodeStats", ex);
+                Logger.Error("Error Initializing Code::Stats", ex);
             }
         }
 
@@ -317,11 +317,14 @@ namespace CodeStats
 
         private static void ProcessPulses()
         {
-            if ((!currentPulse.isEmpty() || !pulseQueue.IsEmpty) && EnoughTimePassed(DateTime.Now))
+            if ( pulseQueue != null  &&  (  (currentPulse != null && !currentPulse.isEmpty())  ||  !pulseQueue.IsEmpty  )  &&  EnoughTimePassed(DateTime.Now) )
             {
-                pulseQueue.Enqueue(currentPulse);
-                currentPulse = new Pulse();
-                currentCount = 0;
+                if (currentPulse != null && !currentPulse.isEmpty())
+                {
+                    pulseQueue.Enqueue(currentPulse);
+                    currentPulse = new Pulse();
+                    currentCount = 0;
+                }
 
                 if (String.IsNullOrWhiteSpace(ApiKey))
                 {
@@ -492,7 +495,7 @@ namespace CodeStats
                     case LangType.L_ASM: language = "Assembler"; break;
                     case LangType.L_ASP: language = "ASP"; break;
                     case LangType.L_AU3: language = "AutoIt"; break;
-                    case LangType.L_BASH: language = "Bash"; break; // or Shell Script, probably called Shell in NPP
+                    case LangType.L_BASH: language = "Shell Script"; break; // or Shell Script, probably called Shell in NPP (long desc: Unix script file)
                     case LangType.L_BATCH: language = "Batch"; break;
                     case LangType.L_C: language = "C"; break;
                     case LangType.L_CAML: language = "Caml"; break;
@@ -574,7 +577,7 @@ namespace CodeStats
             Debug = _CodeStatsConfigFile.Debug;
             Proxy = _CodeStatsConfigFile.Proxy;
             Stats = _CodeStatsConfigFile.Stats;
-            @Guid = _CodeStatsConfigFile.Guid;
+            CodeStatsPackage.Guid = _CodeStatsConfigFile.Guid;
         }
 
         private static void PromptApiKey()
@@ -593,7 +596,7 @@ namespace CodeStats
         {
             var client = new WebClient { Proxy = CodeStatsPackage.GetProxy() };
             client.Headers[HttpRequestHeader.UserAgent] = Constants.PluginUserAgent;
-            string HtmlResult = client.DownloadString("https://p0358.cf/codestats/report.php?pluginver=" + Constants.PluginVersion + "&cid=" + CodeStatsPackage.Guid); // expected response: ok
+            string HtmlResult = client.DownloadString("https://p0358.cf/codestats/report.php?pluginver=" + Constants.PluginVersion + "&cid=" + CodeStatsPackage.Guid + "&editorname=" + Constants.EditorName + "&editorver=" + Constants.EditorVersion + "&is64proc=" + ProcessorArchitectureHelper.Is64BitProcess.ToString().ToLowerInvariant()); // expected response: ok
             if (HtmlResult.Contains("ok")) _reportedStats = true;
         }
 
