@@ -17,6 +17,7 @@ namespace CodeStats
     static class Logger
     {
         internal static string configDir;
+        internal static bool hasAlreadyShownErrorBox = false;
 
         internal static void Debug(string msg)
         {
@@ -38,7 +39,7 @@ namespace CodeStats
 
         internal static void Error(string msg, Exception ex = null)
         {
-            var exceptionMessage = string.Format("{0}: {1}", msg, ex);
+            var exceptionMessage = $"{msg}: {ex}";
 
             Log(LogLevel.HandledException, exceptionMessage);
         }
@@ -56,8 +57,12 @@ namespace CodeStats
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.ToString(), "Error writing to log file", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
-                //MessageBox.Show(string.Format("{0}\\{1}.log", configDir, Constants.PluginName), "Error writing to log file", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                if (!hasAlreadyShownErrorBox)
+                {
+                    MessageBox.Show(ex.ToString() + "\n\nNo further log writing errors will be shown in this session to avoid interrupting your work.", "Error writing to log file", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                    //MessageBox.Show(string.Format("{0}\\{1}.log", configDir, Constants.PluginName), "Error writing to log file", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                    hasAlreadyShownErrorBox = true;
+                }
             }
         }
 
