@@ -1,4 +1,4 @@
-﻿// NPP plugin platform for .Net v0.93.96 by Kasper B. Graversen etc.
+﻿// NPP plugin platform for .Net v0.94.00 by Kasper B. Graversen etc.
 //
 // This file should stay in sync with the CPP project file
 // "notepad-plus-plus/PowerEditor/src/MISC/PluginsManager/Notepad_plus_msgs.h"
@@ -518,6 +518,28 @@ namespace Kbg.NppPluginNET.PluginInfrastructure
         /// VOID NPPM_SAVEFILE(0, const TCHAR *fileNameToSave)
         /// </summary>
         NPPM_SAVEFILE = Constants.NPPMSG + 94,
+
+        /// <summary>
+        /// VOID NPPM_DISABLEAUTOUPDATE(0, 0)
+        /// </summary>
+        NPPM_DISABLEAUTOUPDATE = Constants.NPPMSG + 95, // 2119 in decimal
+
+        /// <summary>
+        /// BOOL NPPM_REMOVESHORTCUTASSIGNMENT(int cmdID)
+        /// removes the assigned shortcut mapped to cmdID
+        /// returned value : TRUE if function call is successful, otherwise FALSE
+        /// </summary>
+        NPPM_REMOVESHORTCUTBYCMDID = Constants.NPPMSG + 96, // 2120 in decimal
+
+        /// <summary>
+        /// INT NPPM_GETPLUGINHOMEPATH(size_t strLen, TCHAR *pluginRootPath)
+        /// Get plugin home root path. It's useful if plugins want to get its own path
+        /// by appending <pluginFolderName> which is the name of plugin without extension part.
+        /// Returns the number of TCHAR copied/to copy.
+        /// Users should call it with pluginRootPath be NULL to get the required number of TCHAR (not including the terminating nul character),
+        /// allocate pluginRootPath buffer with the return value + 1, then call it again to get the path.
+        /// </summary>
+        NPPM_GETPLUGINHOMEPATH = Constants.NPPMSG + 97,
 
         RUNCOMMAND_USER = Constants.WM_USER + 3000,
         NPPM_GETFULLCURRENTPATH = RUNCOMMAND_USER + FULL_CURRENT_PATH,

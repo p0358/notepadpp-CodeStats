@@ -1,4 +1,4 @@
-﻿// NPP plugin platform for .Net v0.93.96 by Kasper B. Graversen etc.
+﻿// NPP plugin platform for .Net v0.94.00 by Kasper B. Graversen etc.
 using System;
 using System.Text;
 using NppPluginNET.PluginInfrastructure;
@@ -12,7 +12,9 @@ namespace Kbg.NppPluginNET.PluginInfrastructure
 		string GetCurrentFilePath();
 		unsafe string GetFilePath(int bufferId);
 		void SetCurrentLanguage(LangType language);
-	}
+        string GetCurrentFileName();
+        string GetCurrentDirectory();
+    }
 
 	/// <summary>
 	/// This class holds helpers for sending messages defined in the Msgs_h.cs file. It is at the moment
@@ -51,7 +53,29 @@ namespace Kbg.NppPluginNET.PluginInfrastructure
 		{
 			Win32.SendMessage(PluginBase.nppData._nppHandle, (uint) NppMsg.NPPM_SETCURRENTLANGTYPE, Unused, (int) language);
 		}
-	}
+
+        /// <summary>
+        /// Returns the response from NPPM_GETCURRENTDIRECTORY 
+        /// </summary>
+        /// <returns></returns>
+        public string GetCurrentDirectory()
+        {
+            var path = new StringBuilder(Win32.MAX_PATH);
+            Win32.SendMessage(PluginBase.nppData._nppHandle, (uint)NppMsg.NPPM_GETCURRENTDIRECTORY, 0, path);
+            return path.ToString();
+        }
+
+        /// <summary>
+        /// Returns the response from NPPM_GETFILENAME
+        /// </summary>
+        /// <returns></returns>
+        public string GetCurrentFileName()
+        {
+            var fileName = new StringBuilder(Win32.MAX_PATH);
+            Win32.SendMessage(PluginBase.nppData._nppHandle, (uint)NppMsg.NPPM_GETFILENAME, 0, fileName);
+            return fileName.ToString();
+        }
+    }
 
 	/// <summary>
 	/// This class holds helpers for sending messages defined in the Resource_h.cs file. It is at the moment
