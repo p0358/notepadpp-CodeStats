@@ -44,7 +44,7 @@
             // lblAPIKey
             // 
             this.lblAPIKey.AutoSize = true;
-            this.lblAPIKey.Location = new System.Drawing.Point(12, 45);
+            this.lblAPIKey.Location = new System.Drawing.Point(12, 43);
             this.lblAPIKey.Name = "lblAPIKey";
             this.lblAPIKey.Size = new System.Drawing.Size(123, 15);
             this.lblAPIKey.TabIndex = 0;
@@ -52,19 +52,19 @@
             // 
             // txtAPIKey
             // 
-            this.txtAPIKey.Location = new System.Drawing.Point(140, 41);
+            this.txtAPIKey.Location = new System.Drawing.Point(136, 40);
             this.txtAPIKey.MaxLength = 255;
             this.txtAPIKey.Name = "txtAPIKey";
-            this.txtAPIKey.Size = new System.Drawing.Size(233, 23);
+            this.txtAPIKey.Size = new System.Drawing.Size(528, 23);
             this.txtAPIKey.TabIndex = 1;
             // 
             // btnOk
             // 
             this.btnOk.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.btnOk.DialogResult = System.Windows.Forms.DialogResult.OK;
-            this.btnOk.Location = new System.Drawing.Point(286, 70);
+            this.btnOk.Location = new System.Drawing.Point(576, 72);
             this.btnOk.Name = "btnOk";
-            this.btnOk.Size = new System.Drawing.Size(87, 27);
+            this.btnOk.Size = new System.Drawing.Size(88, 27);
             this.btnOk.TabIndex = 2;
             this.btnOk.Text = "OK";
             this.btnOk.UseVisualStyleBackColor = true;
@@ -74,7 +74,7 @@
             // 
             this.linkLabel1.LinkArea = new System.Windows.Forms.LinkArea(0, 90);
             this.linkLabel1.LinkBehavior = System.Windows.Forms.LinkBehavior.AlwaysUnderline;
-            this.linkLabel1.Location = new System.Drawing.Point(140, 9);
+            this.linkLabel1.Location = new System.Drawing.Point(136, 8);
             this.linkLabel1.Name = "linkLabel1";
             this.linkLabel1.Size = new System.Drawing.Size(117, 15);
             this.linkLabel1.TabIndex = 4;
@@ -97,7 +97,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoSize = true;
-            this.ClientSize = new System.Drawing.Size(391, 109);
+            this.ClientSize = new System.Drawing.Size(680, 109);
             this.Controls.Add(this.linkLabel1);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.btnOk);
@@ -109,7 +109,7 @@
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.Name = "ApiKeyForm";
-            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterParent;
             this.Text = "Code::Stats";
             this.Load += new System.EventHandler(this.ApiKeyForm_Load);
             this.ResumeLayout(false);

@@ -64,7 +64,7 @@
             this.txtAPIKey.MaxLength = 255;
             this.txtAPIKey.Name = "txtAPIKey";
             this.txtAPIKey.Size = new System.Drawing.Size(363, 23);
-            this.txtAPIKey.TabIndex = 1;
+            this.txtAPIKey.TabIndex = 3;
             // 
             // btnOk
             // 
@@ -73,7 +73,7 @@
             this.btnOk.Location = new System.Drawing.Point(254, 209);
             this.btnOk.Name = "btnOk";
             this.btnOk.Size = new System.Drawing.Size(87, 27);
-            this.btnOk.TabIndex = 2;
+            this.btnOk.TabIndex = 1;
             this.btnOk.Text = "Save";
             this.btnOk.UseVisualStyleBackColor = true;
             this.btnOk.Click += new System.EventHandler(this.btnOk_Click);
@@ -85,7 +85,7 @@
             this.btnCancel.Location = new System.Drawing.Point(347, 209);
             this.btnCancel.Name = "btnCancel";
             this.btnCancel.Size = new System.Drawing.Size(87, 27);
-            this.btnCancel.TabIndex = 3;
+            this.btnCancel.TabIndex = 2;
             this.btnCancel.Text = "Cancel";
             this.btnCancel.UseVisualStyleBackColor = true;
             // 
@@ -111,9 +111,9 @@
             this.chkDebugMode.AutoSize = true;
             this.chkDebugMode.Location = new System.Drawing.Point(124, 145);
             this.chkDebugMode.Name = "chkDebugMode";
-            this.chkDebugMode.Size = new System.Drawing.Size(152, 19);
+            this.chkDebugMode.Size = new System.Drawing.Size(184, 19);
             this.chkDebugMode.TabIndex = 6;
-            this.chkDebugMode.Text = "Debugging Code::Stats?";
+            this.chkDebugMode.Text = "Enable Code::Stats debugging";
             this.chkDebugMode.UseVisualStyleBackColor = true;
             // 
             // label2
@@ -133,7 +133,7 @@
             this.chkStats.Location = new System.Drawing.Point(124, 171);
             this.chkStats.Name = "chkStats";
             this.chkStats.Size = new System.Drawing.Size(204, 19);
-            this.chkStats.TabIndex = 8;
+            this.chkStats.TabIndex = 7;
             this.chkStats.Text = "Anonymous usage stats reporting";
             this.chkStats.UseVisualStyleBackColor = true;
             // 
@@ -142,7 +142,7 @@
             this.txtAPIURL.Location = new System.Drawing.Point(124, 43);
             this.txtAPIURL.Name = "txtAPIURL";
             this.txtAPIURL.Size = new System.Drawing.Size(363, 23);
-            this.txtAPIURL.TabIndex = 9;
+            this.txtAPIURL.TabIndex = 4;
             // 
             // label3
             // 
@@ -158,9 +158,9 @@
             this.label4.AutoSize = true;
             this.label4.Location = new System.Drawing.Point(121, 69);
             this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(293, 15);
+            this.label4.Size = new System.Drawing.Size(292, 15);
             this.label4.TabIndex = 11;
-            this.label4.Text = "Only change this URL if you know what you are doing.";
+            this.label4.Text = "Only change API URL if you know what you are doing.";
             // 
             // SettingsForm
             // 

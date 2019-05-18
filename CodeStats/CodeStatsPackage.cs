@@ -25,7 +25,8 @@ namespace CodeStats
         static Bitmap tbBmp = Properties.Resources.CodeStats;
         
         static ConfigFile _CodeStatsConfigFile;
-        static CodeStats.Forms.SettingsForm _settingsForm;
+        public static CodeStats.Forms.SettingsForm _settingsForm;
+        public static CodeStats.Forms.ApiKeyForm _apikeyForm; // should be null if not needed
         static string _lastStatusBarDocTypeText;
         static DateTime _lastPulse = DateTime.Now;
         static DateTime _lastActivity = DateTime.Now;
@@ -33,12 +34,13 @@ namespace CodeStats
 
         public static bool Debug;
         public static string ApiKey;
+        public static string ApiUrl;
         public static string Proxy;
         public static bool Stats;
         public static string Guid;
 
         public static bool _reportedStats = false;
-        public static bool _shownInvalidApiTokenMessage = false;
+        public static bool _hasAlreadyShownInvalidApiTokenMessage = false;
 
         //public static string currentLangName = ""; // N++ (ex. HTML, not compatible with Code::Stats names everywhere)
         public static string currentLangDesc = ""; // N++ (ex. Hyper Text Markup Language)
@@ -66,6 +68,8 @@ namespace CodeStats
             {
                 InitializeAsync();
             });
+
+            //System.Diagnostics.Debugger.Launch();
         }
 
         private static void InitializeAsync()
@@ -106,12 +110,12 @@ namespace CodeStats
                     {
                         extensionMappingJson = string.Empty;
                         Logger.Error("Exception when trying to download latest extension mappings, using local ones instead", ex);
-                    }
+                    } // update extension mapping JSON
                 }
                 catch
                 {
                     extensionMappingJson = string.Empty;
-                }
+                } // get webclient, set proxy, update extension mapping JSON
 
                 if (String.IsNullOrWhiteSpace(extensionMappingJson)) 
                 {
@@ -150,9 +154,9 @@ namespace CodeStats
                 _CodeStatsConfigFile = new ConfigFile();
                 GetSettings();
 
+                // Check for updates
                 try
                 {
-                    // Check for updates
                     string latest = Constants.LatestPluginVersion();
                     if (Constants.PluginVersion != latest && !String.IsNullOrWhiteSpace(latest))
                     {
@@ -189,6 +193,7 @@ namespace CodeStats
 
         internal static void SetToolBarIcon()
         {
+            // TODO: Maybe check out https://docs.microsoft.com/en-us/windows/desktop/controls/embed-nonbutton-controls-in-toolbars to create counter within toolbar as alternative?
             toolbarIcons tbIcons = new toolbarIcons();
             tbIcons.hToolbarBmp = tbBmp.GetHbitmap();
             IntPtr pTbIcons = Marshal.AllocHGlobal(Marshal.SizeOf(tbIcons));
@@ -212,17 +217,20 @@ namespace CodeStats
             // TODO: NPPN_SHUTDOWN - save unpulsed to config (or do it in plugin unload sequence rather on bottom of this file)
             if (notification.Header.Code == (uint)NppMsg.NPPN_LANGCHANGED) // Does not seem to be triggered?
             {
+                Logger.Debug("[notification] NPPN_LANGCHANGED");
                 //currentLangDesc = GetCurrentLangDesc(); - below does this
                 UpdateStatusbar();
             }
             if (notification.Header.Code == (uint)NppMsg.NPPN_READY) // IMPORTANT: It triggers SCN_MODIFIED for each opened file before this
             {
+                Logger.Debug("[notification] NPPN_READY");
                 nppStarted = true;
                 UpdateStatusbar();
             }
             if (nppStarted && (notification.Header.Code == (uint)SciMsg.SCN_MODIFIED || notification.Header.Code == (uint)NppMsg.NPPN_TBMODIFICATION))
             {
-                UpdateStatusbar();
+                //Logger.Debug("[notification] SCN_MODIFIED #1");
+                //UpdateStatusbar();
             }
 
             /*if (notification.Header.Code == (uint)NppMsg.NPPN_FILESAVED) // It does count as 1 XP in Visual Studio Code, though not sure if intended!
@@ -245,24 +253,26 @@ namespace CodeStats
 
             if (notification.Header.Code == (uint)SciMsg.SCN_CHARADDED) // our best bet
             {
+                Logger.Debug("[notification] SCN_CHARADDED");
                 HandleActicity();
-                Logger.Debug("SCN_CHARADDED - File: " + GetCurrentFile() + ", char: " + notification.character + ", lang: " + GetCurrentLanguage());
+                if (Debug) Logger.Debug("SCN_CHARADDED - File: " + GetCurrentFile() + ", char: " + (char)notification.character + " (" + notification.character + "), lang: " + GetCurrentLanguage());
             }
 
             int SC_PERFORMED_USER_AND_SC_MOD_DELETETEXT = (int)SciMsg.SC_PERFORMED_USER | (int)SciMsg.SC_MOD_DELETETEXT;
             if (nppStarted && notification.Header.Code == (uint)SciMsg.SCN_MODIFIED && ((notification.ModificationType & SC_PERFORMED_USER_AND_SC_MOD_DELETETEXT) == SC_PERFORMED_USER_AND_SC_MOD_DELETETEXT))
             {
+                Logger.Debug("[notification] SCN_MODIFIED #2");
                 // Looks like we can use this to track deleted stuff once Notepad++ is started and ready
                 // It doesn't trigger on file close either, unlike on open with SC_MOD_INSERTTEXT, so we only use this, and SCN_CHARADDED for inserts
                 // It will skip Ctrl+V if it wasn't pasted on some existing text, but never mind, it is still counting the most we want
                 // And we would not like it to count random file opens or other actions in
                 HandleActicity();
-                Logger.Debug("SC_PERFORMED_USER & SC_MOD_DELETETEXT - File: " + GetCurrentFile() + ", char: " + notification.character + ", flags: " + notification.ModificationType.ToString("X"));
+                if (Debug) Logger.Debug("SC_PERFORMED_USER & SC_MOD_DELETETEXT - File: " + GetCurrentFile() + ", char: " + notification.character + ", flags: " + notification.ModificationType.ToString("X"));
             }
 
             if (notification.Header.Code == (uint)SciMsg.SCEN_CHANGE) // Does not seem to be ever triggered (ah, right, GTK+ only it seems?)
             {
-                Logger.Debug("SCEN_CHANGE - File: " + GetCurrentFile() + ", char: " + notification.character + ", lang: " + GetCurrentLanguage());
+                if (Debug) Logger.Debug("SCEN_CHANGE - File: " + GetCurrentFile() + ", char: " + notification.character + ", lang: " + GetCurrentLanguage());
             }
             // http://docs.notepad-plus-plus.org/index.php/Messages_And_Notifications
             // http://www.scintilla.org/ScintillaDoc.html
@@ -336,12 +346,14 @@ namespace CodeStats
                 var jsonSerializer = new JavaScriptSerializer();
 
                 string URL;
-                if (String.IsNullOrWhiteSpace(_CodeStatsConfigFile.ApiUrl))
+                bool usesCustomEndpoint = false;
+                if (String.IsNullOrWhiteSpace(ApiUrl))
                 {
                     URL = Constants.ApiMyPulsesEndpoint;
                 } else
                 {
-                    URL = _CodeStatsConfigFile.ApiUrl;
+                    URL = ApiUrl;
+                    usesCustomEndpoint = true;
                 }
                 client.Headers[HttpRequestHeader.UserAgent] = Constants.PluginUserAgent;
                 client.Headers[HttpRequestHeader.ContentType] = "application/json";
@@ -373,14 +385,33 @@ namespace CodeStats
                             if (ex.Status == WebExceptionStatus.ProtocolError)
                             {
                                 var response = ex.Response as HttpWebResponse;
-                                if (response != null && (int)response.StatusCode == 403)
+                                if (response != null)
                                 {
-                                    if (!_shownInvalidApiTokenMessage) // we want to inform user only once, and if he does not provide the token, let's not bomb him with error each time after he types something
+                                    if ((int)response.StatusCode == 403)
                                     {
-                                        MessageBox.Show("Could not pulse. Please make sure you entered a valid API token in Code::Stats settings.", "Code::Stats - error 403", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                        _shownInvalidApiTokenMessage = true;
+                                        Logger.Error("Could not pulse (error 403). Please make sure you entered a valid API token in Code::Stats settings.", ex);
+                                        if (!_hasAlreadyShownInvalidApiTokenMessage) // we want to inform user only once, and if they do not provide the token, let's not bomb him with error each time after they type something
+                                        {
+                                            MessageBox.Show("Could not pulse. Please make sure you entered a valid API token in Code::Stats settings.\nAll recorded XP from this session will be lost if you do not provide the correct API token!", "Code::Stats – error 403", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                            _hasAlreadyShownInvalidApiTokenMessage = true;
+                                            PromptApiKey();
+                                        }
                                     }
-                                    Logger.Error("Could not pulse. Please make sure you entered a valid API token in Code::Stats settings.", ex);
+                                    else if ((int)response.StatusCode == 404 && usesCustomEndpoint)
+                                    {
+                                        Logger.Error("Could not pulse (error 404). The entered custom endpoint (" + URL + ") is invalid. ", ex);
+                                        MessageBox.Show("Could not pulse. Invalid API endpoint URL. Please make sure you entered a valid API URL in Code::Stats settings or delete the value altogether to restore the default.\nAll recorded XP from this session will be lost if you do not provide the correct API URL path!", "Code::Stats – error 404", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                        
+                                        //_settingsForm.txtAPIURL.Focus();
+                                        //_settingsForm.txtAPIURL.SelectAll();
+                                        _settingsForm.FocusTxtAPIURL();
+                                        SettingsPopup();
+                                        _settingsForm.ShowAPIURLTooltip();
+                                    }
+                                    else
+                                    {
+                                        Logger.Error("Could not pulse - HTTP error " + (int)response.StatusCode + ". ", ex);
+                                    }
                                 }
                                 else
                                 {
@@ -574,6 +605,7 @@ namespace CodeStats
         {
             _CodeStatsConfigFile.Read();
             ApiKey = _CodeStatsConfigFile.ApiKey;
+            ApiUrl = _CodeStatsConfigFile.ApiUrl;
             Debug = _CodeStatsConfigFile.Debug;
             Proxy = _CodeStatsConfigFile.Proxy;
             Stats = _CodeStatsConfigFile.Stats;
@@ -583,12 +615,13 @@ namespace CodeStats
         private static void PromptApiKey()
         {
             Logger.Info("Please input your API token into the Code::Stats window.");
-            var form = new CodeStats.Forms.ApiKeyForm();
-            form.ShowDialog();
+            /*var form*/_apikeyForm = new CodeStats.Forms.ApiKeyForm();
+            _apikeyForm.ShowDialog();
         }
 
         private static void SettingsPopup()
         {
+            _settingsForm.Visible = false;
             _settingsForm.ShowDialog();
         }
 
@@ -596,7 +629,7 @@ namespace CodeStats
         {
             var client = new WebClient { Proxy = CodeStatsPackage.GetProxy() };
             client.Headers[HttpRequestHeader.UserAgent] = Constants.PluginUserAgent;
-            string HtmlResult = client.DownloadString("https://p0358.cf/codestats/report.php?pluginver=" + Constants.PluginVersion + "&cid=" + CodeStatsPackage.Guid + "&editorname=" + Constants.EditorName + "&editorver=" + Constants.EditorVersion + "&is64proc=" + ProcessorArchitectureHelper.Is64BitProcess.ToString().ToLowerInvariant()); // expected response: ok
+            string HtmlResult = client.DownloadString("https://p0358.net/codestats/report.php?pluginver=" + Constants.PluginVersion + "&cid=" + CodeStatsPackage.Guid + "&editorname=" + Constants.EditorName + "&editorver=" + Constants.EditorVersion + "&is64process=" + ProcessorArchitectureHelper.Is64BitProcess.ToString().ToLowerInvariant() + "&is64sys=" + ProcessorArchitectureHelper.Is64BitOperatingSystem.ToString().ToLowerInvariant()); // expected response: ok
             if (HtmlResult.Contains("ok")) _reportedStats = true;
         }
 
@@ -612,6 +645,12 @@ namespace CodeStats
         public static WebProxy GetProxy()
         {
             WebProxy proxy = null;
+
+            if (String.IsNullOrWhiteSpace(Proxy))
+            {
+                Logger.Debug("No proxy will be used. It's not set.");
+                return proxy;
+            }
 
             try
             {

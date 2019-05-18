@@ -30,12 +30,22 @@ namespace CodeStats.Forms
         {
             try
             {
+                if (CodeStatsPackage._settingsForm != null && CodeStatsPackage._settingsForm.Visible)
+                {
+                    CodeStatsPackage._settingsForm.Close();
+                }
+            }
+            finally { }
+
+            try
+            {
                 string apiKey = txtAPIKey.Text.Trim();                         
                 //if (true)
                 //{
                     _CodeStatsConfigFile.ApiKey = apiKey;
                     _CodeStatsConfigFile.Save();
                     CodeStatsPackage.ApiKey = apiKey;
+                    CodeStatsPackage._hasAlreadyShownInvalidApiTokenMessage = false;
                 /*}
                 else // - kept in case we check API tokens in future
                 {
