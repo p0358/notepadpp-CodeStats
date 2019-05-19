@@ -47,6 +47,15 @@
             this.txtAPIURL = new System.Windows.Forms.TextBox();
             this.label3 = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
+            this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.checkBox1 = new System.Windows.Forms.CheckBox();
+            this.checkBox2 = new System.Windows.Forms.CheckBox();
+            this.checkBox3 = new System.Windows.Forms.CheckBox();
+            this.label5 = new System.Windows.Forms.Label();
+            this.button1 = new System.Windows.Forms.Button();
+            this.button2 = new System.Windows.Forms.Button();
+            this.checkedListBox1 = new System.Windows.Forms.CheckedListBox();
+            this.groupBox1.SuspendLayout();
             this.SuspendLayout();
             // 
             // lblAPIKey
@@ -70,7 +79,7 @@
             // 
             this.btnOk.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.btnOk.DialogResult = System.Windows.Forms.DialogResult.OK;
-            this.btnOk.Location = new System.Drawing.Point(254, 209);
+            this.btnOk.Location = new System.Drawing.Point(254, 351);
             this.btnOk.Name = "btnOk";
             this.btnOk.Size = new System.Drawing.Size(87, 27);
             this.btnOk.TabIndex = 1;
@@ -82,7 +91,7 @@
             // 
             this.btnCancel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.btnCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.btnCancel.Location = new System.Drawing.Point(347, 209);
+            this.btnCancel.Location = new System.Drawing.Point(347, 351);
             this.btnCancel.Name = "btnCancel";
             this.btnCancel.Size = new System.Drawing.Size(87, 27);
             this.btnCancel.TabIndex = 2;
@@ -111,9 +120,9 @@
             this.chkDebugMode.AutoSize = true;
             this.chkDebugMode.Location = new System.Drawing.Point(124, 145);
             this.chkDebugMode.Name = "chkDebugMode";
-            this.chkDebugMode.Size = new System.Drawing.Size(184, 19);
+            this.chkDebugMode.Size = new System.Drawing.Size(169, 19);
             this.chkDebugMode.TabIndex = 6;
-            this.chkDebugMode.Text = "Enable Code::Stats debugging";
+            this.chkDebugMode.Text = "Enable debug level logging";
             this.chkDebugMode.UseVisualStyleBackColor = true;
             // 
             // label2
@@ -162,11 +171,103 @@
             this.label4.TabIndex = 11;
             this.label4.Text = "Only change API URL if you know what you are doing.";
             // 
+            // groupBox1
+            // 
+            this.groupBox1.Controls.Add(this.button2);
+            this.groupBox1.Controls.Add(this.button1);
+            this.groupBox1.Controls.Add(this.label5);
+            this.groupBox1.Controls.Add(this.checkBox3);
+            this.groupBox1.Controls.Add(this.checkBox2);
+            this.groupBox1.Controls.Add(this.checkBox1);
+            this.groupBox1.Location = new System.Drawing.Point(120, 200);
+            this.groupBox1.Name = "groupBox1";
+            this.groupBox1.Size = new System.Drawing.Size(368, 144);
+            this.groupBox1.TabIndex = 12;
+            this.groupBox1.TabStop = false;
+            this.groupBox1.Text = "Language detection";
+            // 
+            // checkBox1
+            // 
+            this.checkBox1.AutoSize = true;
+            this.checkBox1.Checked = true;
+            this.checkBox1.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.checkBox1.Location = new System.Drawing.Point(8, 40);
+            this.checkBox1.Name = "checkBox1";
+            this.checkBox1.Size = new System.Drawing.Size(168, 19);
+            this.checkBox1.TabIndex = 0;
+            this.checkBox1.Text = "Use file extension mapping";
+            this.checkBox1.UseVisualStyleBackColor = true;
+            // 
+            // checkBox2
+            // 
+            this.checkBox2.AutoSize = true;
+            this.checkBox2.Checked = true;
+            this.checkBox2.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.checkBox2.Location = new System.Drawing.Point(8, 64);
+            this.checkBox2.Name = "checkBox2";
+            this.checkBox2.Size = new System.Drawing.Size(255, 19);
+            this.checkBox2.TabIndex = 1;
+            this.checkBox2.Text = "Use lexer language (top menu → Language)";
+            this.checkBox2.UseVisualStyleBackColor = true;
+            // 
+            // checkBox3
+            // 
+            this.checkBox3.AutoSize = true;
+            this.checkBox3.Location = new System.Drawing.Point(8, 16);
+            this.checkBox3.Name = "checkBox3";
+            this.checkBox3.Size = new System.Drawing.Size(239, 19);
+            this.checkBox3.TabIndex = 2;
+            this.checkBox3.Text = "Use custom local file extension mapping";
+            this.checkBox3.UseVisualStyleBackColor = true;
+            // 
+            // label5
+            // 
+            this.label5.Location = new System.Drawing.Point(8, 88);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(352, 48);
+            this.label5.TabIndex = 3;
+            this.label5.Text = "Detection order: custom file extension mapping, file extension mapping, lexer lan" +
+    "guage (custom language definitions are unsupported due to plugin interface limit" +
+    "ations)";
+            // 
+            // button1
+            // 
+            this.button1.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.button1.Location = new System.Drawing.Point(248, 16);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(112, 24);
+            this.button1.TabIndex = 4;
+            this.button1.Text = "Open";
+            this.button1.UseVisualStyleBackColor = true;
+            // 
+            // button2
+            // 
+            this.button2.Location = new System.Drawing.Point(248, 40);
+            this.button2.Name = "button2";
+            this.button2.Size = new System.Drawing.Size(112, 23);
+            this.button2.TabIndex = 5;
+            this.button2.Text = "Show";
+            this.button2.UseVisualStyleBackColor = true;
+            // 
+            // checkedListBox1
+            // 
+            this.checkedListBox1.FormattingEnabled = true;
+            this.checkedListBox1.Items.AddRange(new object[] {
+            "Custom local file extension mapping",
+            "File extension mapping",
+            "Lexer language (top menu → Language)"});
+            this.checkedListBox1.Location = new System.Drawing.Point(32, 232);
+            this.checkedListBox1.Name = "checkedListBox1";
+            this.checkedListBox1.Size = new System.Drawing.Size(120, 94);
+            this.checkedListBox1.TabIndex = 13;
+            // 
             // SettingsForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(536, 248);
+            this.ClientSize = new System.Drawing.Size(536, 390);
+            this.Controls.Add(this.checkedListBox1);
+            this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.txtProxy);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.txtAPIURL);
@@ -188,6 +289,8 @@
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Code::Stats Settings";
             this.Load += new System.EventHandler(this.SettingsForm_Load);
+            this.groupBox1.ResumeLayout(false);
+            this.groupBox1.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -203,5 +306,13 @@
         private System.Windows.Forms.TextBox txtAPIURL;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Label label4;
+        private System.Windows.Forms.GroupBox groupBox1;
+        private System.Windows.Forms.Button button2;
+        private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.Label label5;
+        private System.Windows.Forms.CheckBox checkBox3;
+        private System.Windows.Forms.CheckBox checkBox2;
+        private System.Windows.Forms.CheckBox checkBox1;
+        private System.Windows.Forms.CheckedListBox checkedListBox1;
     }
 }
