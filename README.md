@@ -9,13 +9,11 @@ Code::Stats - Write code, level up, show off! A free stats tracking service for 
 Installation
 ------------
 
-1. Inside Notepad++ open the Plugin Manager (`Plugins` → `Plugin Manager` → `Show Plugin Manager`).
+1. Inside Notepad++ open the Plugin Manager (`Plugins` → `Plugin Admin`).
 
 2. Check the box next to `Code::Stats` in the list of plugins.
 
 3. Click the `Install` button.
-
-4. Restart Notepad++.
 
 3. Enter your [API token](https://codestats.net/my/machines), then press `enter`.
 
