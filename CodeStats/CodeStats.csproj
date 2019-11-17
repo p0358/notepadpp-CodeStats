@@ -59,10 +59,14 @@
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.IO.Compression.FileSystem" />
+    <Reference Include="System.Net.Http" />
     <Reference Include="System.Web.Extensions" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
@@ -70,6 +74,7 @@
   <ItemGroup>
     <Compile Include="ConfigFile.cs" />
     <Compile Include="Constants.cs" />
+    <Compile Include="CustomMappingConfig.cs" />
     <Compile Include="Pulse.cs" />
     <Compile Include="Logger.cs" />
     <Compile Include="NativeMethods.cs" />
@@ -110,6 +115,7 @@
     </Compile>
     <Compile Include="PluginInfrastructure\UnmanagedExports.cs" />
     <Compile Include="RunProcess.cs" />
+    <Compile Include="Updater.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Forms\ApiKeyForm.resx">
@@ -128,6 +134,10 @@
     <EmbeddedResource Include="Resources\codestats-120.png" />
     <EmbeddedResource Include="Resources\codestats-16.png" />
     <EmbeddedResource Include="Resources\extension_mapping.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="app.config" />
+    <None Include="app.manifest" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <Import Project="$(MSBuildProjectDirectory)\PluginInfrastructure\DllExport\NppPlugin.DllExport.targets" />

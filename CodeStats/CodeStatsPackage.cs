@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Net;
+using System.Net.Http;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -74,6 +75,17 @@ namespace CodeStats
 
         private static void InitializeAsync()
         {
+            if (System.Net.ServicePointManager.SecurityProtocol != 0)
+            {
+                // If the value is not set to 0 (SystemDefault), disable old protocols and make sure TLS 1.3, 1.2, 1.1 are enabled
+                System.Net.ServicePointManager.SecurityProtocol &= ~SecurityProtocolType.Ssl3;
+                System.Net.ServicePointManager.SecurityProtocol &= ~SecurityProtocolType.Tls;
+                System.Net.ServicePointManager.SecurityProtocol |= (SecurityProtocolType)12288 | SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11;
+            }
+            //System.Net.ServicePointManager.SecurityProtocol = (SecurityProtocolType)0; // SystemDefault, we don't use this since it's supported only since .NET 4.7
+
+            //Updater.RenameTest();
+            //Updater.SignatureVerificationTest();
             try
             {
                 // Delete existing log file to save space
@@ -214,6 +226,11 @@ namespace CodeStats
 
         public static void OnNotification(ScNotification notification)
         {
+            if (nppStarted && notification.Header.Code == (uint)SciMsg.SCN_MODIFIED)
+            {
+                Logger.Debug("[notification] SCN_MODIFIED, notification code: 0x" + notification.Header.Code.ToString("x"));
+            }
+
             // TODO: NPPN_SHUTDOWN - save unpulsed to config (or do it in plugin unload sequence rather on bottom of this file)
             if (notification.Header.Code == (uint)NppMsg.NPPN_LANGCHANGED) // Does not seem to be triggered?
             {
@@ -261,7 +278,7 @@ namespace CodeStats
             int SC_PERFORMED_USER_AND_SC_MOD_DELETETEXT = (int)SciMsg.SC_PERFORMED_USER | (int)SciMsg.SC_MOD_DELETETEXT;
             if (nppStarted && notification.Header.Code == (uint)SciMsg.SCN_MODIFIED && ((notification.ModificationType & SC_PERFORMED_USER_AND_SC_MOD_DELETETEXT) == SC_PERFORMED_USER_AND_SC_MOD_DELETETEXT))
             {
-                Logger.Debug("[notification] SCN_MODIFIED #2");
+                Logger.Debug("[notification] SCN_MODIFIED #2, notification code: 0x" + notification.Header.Code.ToString("x"));
                 // Looks like we can use this to track deleted stuff once Notepad++ is started and ready
                 // It doesn't trigger on file close either, unlike on open with SC_MOD_INSERTTEXT, so we only use this, and SCN_CHARADDED for inserts
                 // It will skip Ctrl+V if it wasn't pasted on some existing text, but never mind, it is still counting the most we want
@@ -325,7 +342,7 @@ namespace CodeStats
             });
         }
 
-        private static void ProcessPulses()
+        private static async Task ProcessPulses()
         {
             if ( pulseQueue != null  &&  (  (currentPulse != null && !currentPulse.isEmpty())  ||  !pulseQueue.IsEmpty  )  &&  EnoughTimePassed(DateTime.Now) )
             {
@@ -371,7 +388,8 @@ namespace CodeStats
                         {
                             string json = jsonSerializer.Serialize(result);
                             Logger.Debug("Pulsing " + json);
-                            string HtmlResult = client.UploadString(URL, json);
+                            //string HtmlResult = client.UploadString(URL, json);
+                            string HtmlResult = await client.UploadStringTaskAsync(URL, json);
                             _lastPulse = DateTime.Now;
                             if (!HtmlResult.Contains(@"""ok""") && !HtmlResult.Contains(@"success"))
                             {
@@ -392,8 +410,8 @@ namespace CodeStats
                                         Logger.Error("Could not pulse (error 403). Please make sure you entered a valid API token in Code::Stats settings.", ex);
                                         if (!_hasAlreadyShownInvalidApiTokenMessage) // we want to inform user only once, and if they do not provide the token, let's not bomb him with error each time after they type something
                                         {
-                                            MessageBox.Show("Could not pulse. Please make sure you entered a valid API token in Code::Stats settings.\nAll recorded XP from this session will be lost if you do not provide the correct API token!", "Code::Stats – error 403", MessageBoxButtons.OK, MessageBoxIcon.Error);
                                             _hasAlreadyShownInvalidApiTokenMessage = true;
+                                            MessageBox.Show("Could not pulse. Please make sure you entered a valid API token in Code::Stats settings.\nAll recorded XP from this session will be lost if you do not provide the correct API token!", "Code::Stats – error 403", MessageBoxButtons.OK, MessageBoxIcon.Error);
                                             PromptApiKey();
                                         }
                                     }
@@ -601,7 +619,7 @@ namespace CodeStats
             GetSettings();
         }
 
-        private static void GetSettings()
+        public static void GetSettings()
         {
             _CodeStatsConfigFile.Read();
             ApiKey = _CodeStatsConfigFile.ApiKey;
@@ -627,10 +645,14 @@ namespace CodeStats
 
         public static void ReportStats()
         {
-            var client = new WebClient { Proxy = CodeStatsPackage.GetProxy() };
-            client.Headers[HttpRequestHeader.UserAgent] = Constants.PluginUserAgent;
-            string HtmlResult = client.DownloadString("https://p0358.net/codestats/report.php?pluginver=" + Constants.PluginVersion + "&cid=" + CodeStatsPackage.Guid + "&editorname=" + Constants.EditorName + "&editorver=" + Constants.EditorVersion + "&is64process=" + ProcessorArchitectureHelper.Is64BitProcess.ToString().ToLowerInvariant() + "&is64sys=" + ProcessorArchitectureHelper.Is64BitOperatingSystem.ToString().ToLowerInvariant()); // expected response: ok
-            if (HtmlResult.Contains("ok")) _reportedStats = true;
+            try
+            {
+                var client = new WebClient { Proxy = CodeStatsPackage.GetProxy() };
+                client.Headers[HttpRequestHeader.UserAgent] = Constants.PluginUserAgent;
+                string HtmlResult = client.DownloadString("https://p0358.net/codestats/report.php?pluginver=" + Constants.PluginVersion + "&cid=" + CodeStatsPackage.Guid + "&editorname=" + Constants.EditorName + "&editorver=" + Constants.EditorVersion + "&is64process=" + ProcessorArchitectureHelper.Is64BitProcess.ToString().ToLowerInvariant() + "&is64sys=" + ProcessorArchitectureHelper.Is64BitOperatingSystem.ToString().ToLowerInvariant()); // expected response: ok
+                if (HtmlResult.Contains("ok")) _reportedStats = true;
+            }
+            finally { }
         }
 
         private static string ToUnixEpoch(DateTime date)
@@ -715,8 +737,10 @@ namespace CodeStats
 
         internal static class CoreAssembly
         {
-            static readonly Assembly Reference = typeof(CoreAssembly).Assembly;
+            public static readonly Assembly Reference = typeof(CoreAssembly).Assembly;
             public static readonly Version Version = Reference.GetName().Version;
+            // System.Reflection.Assembly.GetExecutingAssembly().Location
+            public static readonly string Location = Reference.Location;
         }
 
         internal static void PluginCleanUp()

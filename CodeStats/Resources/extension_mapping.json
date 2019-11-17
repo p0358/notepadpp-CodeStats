@@ -4,6 +4,7 @@
   "log": "Log",
   "au3": "AutoIt",
   "bat": "Batch",
+  "bc":  "BaanC",
   "clojure": "Clojure",
   "coffeescript": "CoffeeScript",
   "coffee": "CoffeeScript",

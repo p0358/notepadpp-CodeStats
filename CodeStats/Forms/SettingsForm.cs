@@ -69,7 +69,7 @@ namespace CodeStats.Forms
                         if (_CodeStatsConfigFile.ApiUrl != txtAPIURL.Text && String.IsNullOrWhiteSpace(_CodeStatsConfigFile.ApiUrl))
                         {
                         // Show confirmation
-                            if ((MessageBox.Show("API URL should only be changed if you intend to use another instance of Code::Stats service, for example beta or private, unpublic one.\nIt should normally be kept to default. If you put wrong URL here, no pulses will be registered and all your XP will be lost.\n\n" + txtAPIURL.Text + "\nDo you still want to save this API URL?", "Are you sure?",
+                            if ((MessageBox.Show("API URL should only be changed if you intend to use another instance of Code::Stats service, for example beta or private, unpublic one.\nIt should normally be kept to default. If you put wrong URL here, no pulses will be registered and all your recorded XP will be lost.\n\n" + txtAPIURL.Text + "\nDo you still want to save this API URL?", "Are you sure?",
                                 MessageBoxButtons.YesNo, MessageBoxIcon.Warning,
                                 MessageBoxDefaultButton.Button2) == System.Windows.Forms.DialogResult.Yes))
                             {
@@ -92,6 +92,8 @@ namespace CodeStats.Forms
                     _CodeStatsConfigFile.Stats = chkStats.Checked;
 
                     _CodeStatsConfigFile.Save();
+
+                    CodeStatsPackage.GetSettings(); // reload settings in main class
 
                     CodeStatsPackage._hasAlreadyShownInvalidApiTokenMessage = false;
 
