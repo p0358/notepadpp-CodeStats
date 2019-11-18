@@ -18,6 +18,7 @@ namespace CodeStats
     {
         internal static string configDir;
         internal static bool hasAlreadyShownErrorBox = false;
+        internal static StreamWriter writer;
 
         internal static void Debug(string msg)
         {
@@ -47,21 +48,22 @@ namespace CodeStats
         internal static void Log(LogLevel level, string msg)
         {
             try
-            {
-                var writer = Setup();
+            {      
+                //var writer = Setup();
+                if (writer == null) writer = Setup(); // we'll try to keep the file opened all the time and see how bad we end up with it
                 if (writer == null) return;
 
                 writer.WriteLine("[Code::Stats {0} {1}] {2}", Enum.GetName(level.GetType(), level), DateTime.Now.ToString("HH:mm:ss"), msg);            
                 writer.Flush();
-                writer.Close();
+                //writer.Close();
             }
             catch (Exception ex)
             {
                 if (!hasAlreadyShownErrorBox)
                 {
+                    hasAlreadyShownErrorBox = true;
                     MessageBox.Show(ex.ToString() + "\n\nNo further log writing errors will be shown in this session to avoid interrupting your work.", "Error writing to log file", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
                     //MessageBox.Show(string.Format("{0}\\{1}.log", configDir, Constants.PluginName), "Error writing to log file", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
-                    hasAlreadyShownErrorBox = true;
                 }
             }
         }
@@ -79,7 +81,7 @@ namespace CodeStats
             if (string.IsNullOrWhiteSpace(configDir)) return null;
 
             var filename = string.Format("{0}\\{1}.log", configDir, "CodeStats");
-            var writer = new StreamWriter(File.Open(filename, FileMode.Append, FileAccess.Write));
+            var writer = new StreamWriter(File.Open(filename, FileMode.Append, FileAccess.Write, FileShare.Read));
             return writer;
         }
 

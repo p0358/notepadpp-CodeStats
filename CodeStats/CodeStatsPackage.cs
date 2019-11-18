@@ -10,6 +10,8 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Timers;
 using System.Web.Script.Serialization;
 using System.Windows.Forms;
@@ -39,6 +41,7 @@ namespace CodeStats
         public static string Proxy;
         public static bool Stats;
         public static string Guid;
+        public static List<Constants.DetectionType> DetectionOrder;
 
         public static bool _reportedStats = false;
         public static bool _hasAlreadyShownInvalidApiTokenMessage = false;
@@ -52,9 +55,16 @@ namespace CodeStats
         static bool nppStarted = false;
 
         static Dictionary<string, string> extensionMapping;
+        static Dictionary<string, string> customExtensionMapping;
 
         private static ConcurrentQueue<Pulse> pulseQueue = new ConcurrentQueue<Pulse>();
         private static System.Timers.Timer timer = new System.Timers.Timer();
+
+        public static Task pulseProcessor { get; set; }
+        private static CancellationTokenSource pulseProcessor_tokensource;
+        private static HttpClient pulseProcessor_client;
+        private static HttpClientHandler pulseProcessor_httpClientHandler;
+
         #endregion
 
         internal static void CommandMenuInit()
@@ -93,91 +103,41 @@ namespace CodeStats
             }
             catch { }
 
-            try
-            {
-                Logger.Info(string.Format("Initializing Code::Stats v{0}", Constants.PluginVersion));
-
-                //Logger.Debug(Assembly.GetExecutingAssembly().GetManifestResourceNames().ToString());
-                //Logger.Debug(Assembly.GetExecutingAssembly().GetName().Name);
-
-                Assembly _assembly;
-                StreamReader _textStreamReader;
-                Stream _stream;
-                string extensionMappingJson;
-
-                try
-                {
-                    var client = new WebClient { Proxy = CodeStatsPackage.GetProxy() };
-                    client.Headers[HttpRequestHeader.UserAgent] = Constants.PluginUserAgent;
-
-                    try
-                    {
-                        extensionMappingJson = client.DownloadString("https://raw.githubusercontent.com/p0358/notepadpp-CodeStats/master/CodeStats/Resources/extension_mapping.json");
-                        if (!extensionMappingJson.Trim().StartsWith("{") || !extensionMappingJson.Trim().EndsWith("}"))
-                        {
-                            extensionMappingJson = string.Empty;
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        extensionMappingJson = string.Empty;
-                        Logger.Error("Exception when trying to download latest extension mappings, using local ones instead", ex);
-                    } // update extension mapping JSON
-                }
-                catch
-                {
-                    extensionMappingJson = string.Empty;
-                } // get webclient, set proxy, update extension mapping JSON
-
-                if (String.IsNullOrWhiteSpace(extensionMappingJson)) 
-                {
-                    // Load precompiled/included extension mapping
-                    _assembly = Assembly.GetExecutingAssembly();
-                    _stream = _assembly.GetManifestResourceStream("CodeStats.Resources.extension_mapping.json");
-                    _textStreamReader = new StreamReader(_stream);
-                    extensionMappingJson = _textStreamReader.ReadToEnd();
-                }
-
-                Logger.Debug("Extension mapping JSON: " + extensionMappingJson);
-
-                //var json = "{\"id\":\"13\", \"value\": true}";
-                var serializer = new JavaScriptSerializer();
-                //var table = serializer.Deserialize<dynamic>(json);
-                //Dictionary<string, string> values = serializer.Deserialize<Dictionary<string, string>>(json);
-
-                extensionMapping = serializer.Deserialize<Dictionary<string, string>>(extensionMappingJson);
-
-                //Logger.Debug(values["id"]);
-                //Logger.Debug(table["value"]);
-            }
-            catch (Exception ex)
-            {
-                Logger.Error("Error loading extension mappings!", ex);
-            }
+            Logger.Info(string.Format("Initializing Code::Stats v{0}", Constants.PluginVersion));
 
             try
             {
+                currentPulse = new Pulse();
+                pulseProcessor_httpClientHandler = new HttpClientHandler();
 
                 // Settings Form
                 _settingsForm = new CodeStats.Forms.SettingsForm();
                 _settingsForm.ConfigSaved += SettingsFormOnConfigSaved;
 
+                Logger.Info("Initialized settings form");
+
                 // Load config file
                 _CodeStatsConfigFile = new ConfigFile();
-                GetSettings();
+                GetSettings(true);
+
+                Logger.Debug("Loaded config");
+
+                LoadExtensionMapping();
 
                 // Check for updates
-                try
+                Task.Run(() =>
                 {
-                    string latest = Constants.LatestPluginVersion();
-                    if (Constants.PluginVersion != latest && !String.IsNullOrWhiteSpace(latest))
+                    try
                     {
-                        MessageBox.Show("There is Code::Stats plugin update available!\nDownload it from Plugin Manager or GitHub.\nYour version: " + Constants.PluginVersion + "\nLatest: " + latest, "Code::Stats");
+                        string latest = Constants.LatestPluginVersion();
+                        if (Constants.PluginVersion != latest && !String.IsNullOrWhiteSpace(latest))
+                        {
+                            MessageBox.Show("There is Code::Stats plugin update available!\nDownload it from Plugin Admin (if already available there) or GitHub.\nYour version: " + Constants.PluginVersion + "\nLatest: " + latest, "Code::Stats");
+                        }
                     }
-                }
-                catch { }
+                    catch { }
+                });
 
-                currentPulse = new Pulse();
 
                 if (string.IsNullOrEmpty(ApiKey))
                 {
@@ -186,6 +146,8 @@ namespace CodeStats
                 }
 
                 // setup timer to process queued pulses
+                pulseProcessor_tokensource = new CancellationTokenSource();
+                pulseProcessor_client = new HttpClient(pulseProcessor_httpClientHandler);
                 timer.Interval = pulseFrequency;
                 timer.Elapsed += ProcessPulses;
                 timer.Start();
@@ -200,6 +162,88 @@ namespace CodeStats
             catch (Exception ex)
             {
                 Logger.Error("Error Initializing Code::Stats", ex);
+            }
+        }
+
+        private static void LoadExtensionMapping()
+        {
+            try
+            {
+                //MessageBox.Show("test1");
+                //Logger.Debug(Assembly.GetExecutingAssembly().GetManifestResourceNames().ToString());
+                //Logger.Debug(Assembly.GetExecutingAssembly().GetName().Name);
+
+                Assembly _assembly;
+                StreamReader _textStreamReader;
+                Stream _stream;
+                string extensionMappingJson;
+                var serializer = new JavaScriptSerializer();
+
+                // Load precompiled/included extension mapping first
+                _assembly = Assembly.GetExecutingAssembly();
+                _stream = _assembly.GetManifestResourceStream("CodeStats.Resources.extension_mapping.json");
+                _textStreamReader = new StreamReader(_stream);
+                extensionMappingJson = _textStreamReader.ReadToEnd();
+                extensionMapping = serializer.Deserialize<Dictionary<string, string>>(extensionMappingJson);
+
+                Logger.Debug("Loaded local precompiled extension mapping");
+                //MessageBox.Show("test2");
+
+                // fetch up-to-date mappings from network asynchronously
+                Task.Run(() =>
+                {
+                    string extensionMappingJsonNew = "";
+                    var serializer2 = new JavaScriptSerializer();
+                    try
+                    {
+
+                        var client = new WebClient { Proxy = CodeStatsPackage.GetProxy() };
+                        client.Headers[HttpRequestHeader.UserAgent] = Constants.PluginUserAgent;
+
+                        try
+                        {
+                            extensionMappingJsonNew = client.DownloadString("https://raw.githubusercontent.com/p0358/notepadpp-CodeStats/master/CodeStats/Resources/extension_mapping.json");
+                            if (!extensionMappingJsonNew.Trim().StartsWith("{") || !extensionMappingJson.Trim().EndsWith("}"))
+                            {
+                                extensionMappingJsonNew = string.Empty;
+                                Logger.Error("Invalid response when trying to download latest extension mappings, using local ones instead");
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            extensionMappingJson = string.Empty;
+                            Logger.Error("Exception when trying to download latest extension mappings, using local ones instead", ex);
+                        } // update extension mapping JSON
+                    }
+                    catch
+                    {
+                        extensionMappingJson = string.Empty;
+                    } // get webclient, set proxy, update extension mapping JSON
+
+                    //MessageBox.Show("test3");
+                    if (!String.IsNullOrWhiteSpace(extensionMappingJsonNew) && extensionMappingJsonNew != extensionMappingJson)
+                    {
+                        extensionMapping = serializer2.Deserialize<Dictionary<string, string>>(extensionMappingJson);
+                        Logger.Debug("Loaded latest extension mapping JSON");
+                    }
+                    else Logger.Debug("There are no updates to extension mapping JSON");
+                });
+
+                //Logger.Debug("Extension mapping JSON: " + extensionMappingJson);
+
+                //var json = "{\"id\":\"13\", \"value\": true}";
+                //var serializer = new JavaScriptSerializer();
+                //var table = serializer.Deserialize<dynamic>(json);
+                //Dictionary<string, string> values = serializer.Deserialize<Dictionary<string, string>>(json);
+
+                //extensionMapping = serializer.Deserialize<Dictionary<string, string>>(extensionMappingJson);
+
+                //Logger.Debug(values["id"]);
+                //Logger.Debug(table["value"]);
+            }
+            catch (Exception ex)
+            {
+                Logger.Error("Error loading extension mappings!", ex);
             }
         }
 
@@ -333,7 +377,28 @@ namespace CodeStats
             {
                 try
                 {
-                    ProcessPulses();
+                    if (pulseQueue != null && ((currentPulse != null && !currentPulse.isEmpty()) || !pulseQueue.IsEmpty) && EnoughTimePassed(DateTime.Now))
+                    {
+                        if (currentPulse != null && !currentPulse.isEmpty())
+                        {
+                            pulseQueue.Enqueue(currentPulse);
+                            currentPulse = new Pulse();
+                            currentCount = 0;
+                        }
+
+                        // run only if the task didn't run yet, or the previous one already finished
+                        if (pulseProcessor == null || pulseProcessor.IsCompleted || pulseProcessor.IsFaulted) // don't start if it's cancelled
+                        {
+                            try
+                            {
+                                pulseProcessor = ProcessPulses(pulseProcessor_tokensource);
+                            }
+                            catch (OperationCanceledException) {}
+                        }
+                        //ProcessPulses();
+                    }
+
+                    UpdateStatusbar();
                 }
                 catch (Exception ex)
                 {
@@ -342,120 +407,124 @@ namespace CodeStats
             });
         }
 
-        private static async Task ProcessPulses()
+        private static Task ProcessPulses(CancellationTokenSource tokenSource)
         {
-            if ( pulseQueue != null  &&  (  (currentPulse != null && !currentPulse.isEmpty())  ||  !pulseQueue.IsEmpty  )  &&  EnoughTimePassed(DateTime.Now) )
+            return Task.Run(async () =>
             {
-                if (currentPulse != null && !currentPulse.isEmpty())
+                if (pulseQueue != null && ((currentPulse != null && !currentPulse.isEmpty()) || !pulseQueue.IsEmpty) && EnoughTimePassed(DateTime.Now))
                 {
-                    pulseQueue.Enqueue(currentPulse);
-                    currentPulse = new Pulse();
-                    currentCount = 0;
-                }
-
-                if (String.IsNullOrWhiteSpace(ApiKey))
-                {
-                    Logger.Debug("No API token - cannot pulse!");
-                    return;
-                }
-
-                var client = new WebClient { Proxy = CodeStatsPackage.GetProxy() };
-                var jsonSerializer = new JavaScriptSerializer();
-
-                string URL;
-                bool usesCustomEndpoint = false;
-                if (String.IsNullOrWhiteSpace(ApiUrl))
-                {
-                    URL = Constants.ApiMyPulsesEndpoint;
-                } else
-                {
-                    URL = ApiUrl;
-                    usesCustomEndpoint = true;
-                }
-                client.Headers[HttpRequestHeader.UserAgent] = Constants.PluginUserAgent;
-                client.Headers[HttpRequestHeader.ContentType] = "application/json";
-                client.Headers[HttpRequestHeader.Accept] = "*/*";
-                client.Headers["X-API-Token"] = ApiKey;
-
-                Pulse result;
-                while (pulseQueue.TryDequeue(out result))
-                {
-                    if (!result.isEmpty())
+                    if (currentPulse != null && !currentPulse.isEmpty())
                     {
-                        bool error = false;
-                        // Try to pulse to API
-                        try
+                        pulseQueue.Enqueue(currentPulse);
+                        currentPulse = new Pulse();
+                        currentCount = 0;
+                    }
+
+                    if (String.IsNullOrWhiteSpace(ApiKey))
+                    {
+                        Logger.Debug("No API token - cannot pulse!");
+                        return;
+                    }
+
+                    var client = new WebClient { Proxy = CodeStatsPackage.GetProxy() };
+                    var jsonSerializer = new JavaScriptSerializer();
+
+                    string URL;
+                    bool usesCustomEndpoint = false;
+                    if (String.IsNullOrWhiteSpace(ApiUrl))
+                    {
+                        URL = Constants.ApiMyPulsesEndpoint;
+                    }
+                    else
+                    {
+                        URL = ApiUrl;
+                        usesCustomEndpoint = true;
+                    }
+                    client.Headers["User-Agent"] = Constants.PluginUserAgent;
+                    client.Headers["Content-Type"] = "application/json";
+                    client.Headers["Accept"] = "*/*";
+                    client.Headers["X-API-Token"] = ApiKey;
+
+                    Pulse result;
+                    while (pulseQueue.TryDequeue(out result))
+                    {
+                        if (!result.isEmpty())
                         {
-                            string json = jsonSerializer.Serialize(result);
-                            Logger.Debug("Pulsing " + json);
-                            //string HtmlResult = client.UploadString(URL, json);
-                            string HtmlResult = await client.UploadStringTaskAsync(URL, json);
-                            _lastPulse = DateTime.Now;
-                            if (!HtmlResult.Contains(@"""ok""") && !HtmlResult.Contains(@"success"))
+                            bool error = false;
+                            // Try to pulse to API
+                            try
+                            {
+                                string json = jsonSerializer.Serialize(result);
+                                Logger.Debug("Pulsing " + json);
+                                //string HtmlResult = client.UploadString(URL, json);
+                                string JsonResult = await client.UploadStringTaskAsync(URL, json);
+                                //client.UploadStringAsync()
+                                _lastPulse = DateTime.Now;
+                                if (!JsonResult.Contains(@"""ok""") && !JsonResult.Contains(@"success"))
+                                {
+                                    error = true;
+                                    Logger.Error(@"Error pulsing, response does not contain ""ok"" or ""success"": " + JsonResult);
+                                }
+                            }
+                            catch (WebException ex)
                             {
                                 error = true;
-                                Logger.Error(@"Error pulsing, response does not contain ""ok"" or ""success"": " + HtmlResult);
-                            }
-                        }
-                        catch (WebException ex)
-                        {
-                            error = true;
-                            if (ex.Status == WebExceptionStatus.ProtocolError)
-                            {
-                                var response = ex.Response as HttpWebResponse;
-                                if (response != null)
+                                if (ex.Status == WebExceptionStatus.ProtocolError)
                                 {
-                                    if ((int)response.StatusCode == 403)
+                                    var response = ex.Response as HttpWebResponse;
+                                    if (response != null)
                                     {
-                                        Logger.Error("Could not pulse (error 403). Please make sure you entered a valid API token in Code::Stats settings.", ex);
-                                        if (!_hasAlreadyShownInvalidApiTokenMessage) // we want to inform user only once, and if they do not provide the token, let's not bomb him with error each time after they type something
+                                        if ((int)response.StatusCode == 403)
                                         {
-                                            _hasAlreadyShownInvalidApiTokenMessage = true;
-                                            MessageBox.Show("Could not pulse. Please make sure you entered a valid API token in Code::Stats settings.\nAll recorded XP from this session will be lost if you do not provide the correct API token!", "Code::Stats – error 403", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                            PromptApiKey();
+                                            Logger.Error("Could not pulse (error 403). Please make sure you entered a valid API token in Code::Stats settings.", ex);
+                                            if (!_hasAlreadyShownInvalidApiTokenMessage) // we want to inform user only once, and if they do not provide the token, let's not bomb him with error each time after they type something
+                                            {
+                                                _hasAlreadyShownInvalidApiTokenMessage = true;
+                                                MessageBox.Show("Could not pulse. Please make sure you entered a valid API token in Code::Stats settings.\nAll recorded XP from this session will be lost if you do not provide the correct API token!", "Code::Stats – error 403", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                                PromptApiKey();
+                                            }
                                         }
-                                    }
-                                    else if ((int)response.StatusCode == 404 && usesCustomEndpoint)
-                                    {
-                                        Logger.Error("Could not pulse (error 404). The entered custom endpoint (" + URL + ") is invalid. ", ex);
-                                        MessageBox.Show("Could not pulse. Invalid API endpoint URL. Please make sure you entered a valid API URL in Code::Stats settings or delete the value altogether to restore the default.\nAll recorded XP from this session will be lost if you do not provide the correct API URL path!", "Code::Stats – error 404", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                        
-                                        //_settingsForm.txtAPIURL.Focus();
-                                        //_settingsForm.txtAPIURL.SelectAll();
-                                        _settingsForm.FocusTxtAPIURL();
-                                        SettingsPopup();
-                                        _settingsForm.ShowAPIURLTooltip();
+                                        else if ((int)response.StatusCode == 404 && usesCustomEndpoint)
+                                        {
+                                            Logger.Error("Could not pulse (error 404). The entered custom endpoint (" + URL + ") is invalid. ", ex);
+                                            MessageBox.Show("Could not pulse. Invalid API endpoint URL. Please make sure you entered a valid API URL in Code::Stats settings or delete the value altogether to restore the default.\nAll recorded XP from this session will be lost if you do not provide the correct API URL path!", "Code::Stats – error 404", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+                                            //_settingsForm.txtAPIURL.Focus();
+                                            //_settingsForm.txtAPIURL.SelectAll();
+                                            _settingsForm.FocusTxtAPIURL();
+                                            _settingsForm.ShowAPIURLTooltip();
+                                            SettingsPopup();
+                                            _settingsForm.ShowAPIURLTooltip();
+                                        }
+                                        else
+                                        {
+                                            Logger.Error("Could not pulse - HTTP error " + (int)response.StatusCode + ". Server response: " + response.GetResponseStream().ToString(), ex);
+                                        }
                                     }
                                     else
                                     {
-                                        Logger.Error("Could not pulse - HTTP error " + (int)response.StatusCode + ". ", ex);
+                                        // response==null - no http status code available
+                                        Logger.Error("Could not pulse. Are you behind a proxy? Try setting a proxy in Code::Stats settings with format https://user:pass@host:port. Exception Traceback", ex);
                                     }
                                 }
-                                else
-                                {
-                                    // response==null - no http status code available
-                                    Logger.Error("Could not pulse. Are you behind a proxy? Try setting a proxy in Code::Stats settings with format https://user:pass@host:port. Exception Traceback", ex);
-                                }
+                                else Logger.Error("Could not pulse. Are you behind a proxy? Try setting a proxy in Code::Stats settings with format https://user:pass@host:port. Exception Traceback", ex);
                             }
-                            else Logger.Error("Could not pulse. Are you behind a proxy? Try setting a proxy in Code::Stats settings with format https://user:pass@host:port. Exception Traceback", ex);
-                        }
-                        catch (Exception ex)
-                        {
-                            error = true;
-                            Logger.Error("Error pulsing. Exception Traceback", ex);
-                        }
+                            catch (Exception ex)
+                            {
+                                error = true;
+                                Logger.Error("Error pulsing. Exception Traceback", ex);
+                            }
 
-                        if (error)
-                        {
-                            pulseQueue.Enqueue(result); // Requeue, since we failed to pulse
-                            return;
-                        }
+                            if (error)
+                            {
+                                pulseQueue.Enqueue(result); // Requeue, since we failed to pulse
+                                return;
+                            }
 
+                        }
                     }
                 }
-            }
-
-            UpdateStatusbar();
+            }, tokenSource.Token);
         }
 
         public static string GetCurrentFile()
@@ -619,15 +688,18 @@ namespace CodeStats
             GetSettings();
         }
 
-        public static void GetSettings()
+        public static void GetSettings(bool skipRead = false)
         {
-            _CodeStatsConfigFile.Read();
+            if (!skipRead) _CodeStatsConfigFile.Read();
             ApiKey = _CodeStatsConfigFile.ApiKey;
             ApiUrl = _CodeStatsConfigFile.ApiUrl;
             Debug = _CodeStatsConfigFile.Debug;
             Proxy = _CodeStatsConfigFile.Proxy;
             Stats = _CodeStatsConfigFile.Stats;
             CodeStatsPackage.Guid = _CodeStatsConfigFile.Guid;
+            DetectionOrder = _CodeStatsConfigFile.DetectionOrder;
+
+            pulseProcessor_httpClientHandler.Proxy = GetProxy();
         }
 
         private static void PromptApiKey()
@@ -649,7 +721,11 @@ namespace CodeStats
             {
                 var client = new WebClient { Proxy = CodeStatsPackage.GetProxy() };
                 client.Headers[HttpRequestHeader.UserAgent] = Constants.PluginUserAgent;
-                string HtmlResult = client.DownloadString("https://p0358.net/codestats/report.php?pluginver=" + Constants.PluginVersion + "&cid=" + CodeStatsPackage.Guid + "&editorname=" + Constants.EditorName + "&editorver=" + Constants.EditorVersion + "&is64process=" + ProcessorArchitectureHelper.Is64BitProcess.ToString().ToLowerInvariant() + "&is64sys=" + ProcessorArchitectureHelper.Is64BitOperatingSystem.ToString().ToLowerInvariant()); // expected response: ok
+                string HtmlResult = client.DownloadString("https://p0358.net/codestats/report.php?pluginver=" + Constants.PluginVersion
+                    + "&cid=" + CodeStatsPackage.Guid + "&editorname=" + Constants.EditorName + "&editorver=" + Constants.EditorVersion
+                    + "&is64process=" + ProcessorArchitectureHelper.Is64BitProcess.ToString().ToLowerInvariant() + "&is64sys=" + ProcessorArchitectureHelper.Is64BitOperatingSystem.ToString().ToLowerInvariant()
+                    + "&osverstr" + Constants.OSVersionString + "&osbuild" + Constants.OSVersionBuild
+                ); // expected response: ok
                 if (HtmlResult.Contains("ok")) _reportedStats = true;
             }
             finally { }
@@ -755,7 +831,7 @@ namespace CodeStats
                 timer = null;
 
                 // make sure the queue is empty
-                ProcessPulses();
+                //ProcessPulses();
             }
         }
     }

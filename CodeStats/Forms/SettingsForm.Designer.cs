@@ -48,17 +48,17 @@
             this.label3 = new System.Windows.Forms.Label();
             this.label4 = new System.Windows.Forms.Label();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
-            this.checkBox2 = new System.Windows.Forms.CheckBox();
-            this.checkBox3 = new System.Windows.Forms.CheckBox();
-            this.label5 = new System.Windows.Forms.Label();
-            this.button1 = new System.Windows.Forms.Button();
+            this.chkUseCustomMapping = new System.Windows.Forms.CheckBox();
+            this.radioDetectionPriority_lexerLanguage = new System.Windows.Forms.RadioButton();
+            this.label6 = new System.Windows.Forms.Label();
+            this.radioDetectionPriority_extensionMapping = new System.Windows.Forms.RadioButton();
+            this.btnOpenCustomMappingFile = new System.Windows.Forms.Button();
+            this.labelDetectionOrder = new System.Windows.Forms.Label();
+            this.chkUseExtensionMapping = new System.Windows.Forms.CheckBox();
+            this.chkUseLexerLanguage = new System.Windows.Forms.CheckBox();
+            this.checkBox1 = new System.Windows.Forms.CheckBox();
             this.button2 = new System.Windows.Forms.Button();
             this.checkedListBox1 = new System.Windows.Forms.CheckedListBox();
-            this.radioButton1 = new System.Windows.Forms.RadioButton();
-            this.label6 = new System.Windows.Forms.Label();
-            this.radioButton2 = new System.Windows.Forms.RadioButton();
-            this.checkBox1 = new System.Windows.Forms.CheckBox();
-            this.checkBox4 = new System.Windows.Forms.CheckBox();
             this.groupBox1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -76,14 +76,14 @@
             this.txtAPIKey.Location = new System.Drawing.Point(124, 13);
             this.txtAPIKey.MaxLength = 255;
             this.txtAPIKey.Name = "txtAPIKey";
-            this.txtAPIKey.Size = new System.Drawing.Size(372, 23);
+            this.txtAPIKey.Size = new System.Drawing.Size(371, 23);
             this.txtAPIKey.TabIndex = 3;
             // 
             // btnOk
             // 
             this.btnOk.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.btnOk.DialogResult = System.Windows.Forms.DialogResult.OK;
-            this.btnOk.Location = new System.Drawing.Point(315, 453);
+            this.btnOk.Location = new System.Drawing.Point(315, 402);
             this.btnOk.Name = "btnOk";
             this.btnOk.Size = new System.Drawing.Size(87, 27);
             this.btnOk.TabIndex = 1;
@@ -95,7 +95,7 @@
             // 
             this.btnCancel.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.btnCancel.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.btnCancel.Location = new System.Drawing.Point(408, 453);
+            this.btnCancel.Location = new System.Drawing.Point(408, 402);
             this.btnCancel.Name = "btnCancel";
             this.btnCancel.Size = new System.Drawing.Size(87, 27);
             this.btnCancel.TabIndex = 2;
@@ -107,7 +107,7 @@
             this.txtProxy.Location = new System.Drawing.Point(124, 87);
             this.txtProxy.MaxLength = 255;
             this.txtProxy.Name = "txtProxy";
-            this.txtProxy.Size = new System.Drawing.Size(372, 23);
+            this.txtProxy.Size = new System.Drawing.Size(371, 23);
             this.txtProxy.TabIndex = 5;
             // 
             // label1
@@ -115,7 +115,7 @@
             this.label1.AutoSize = true;
             this.label1.Location = new System.Drawing.Point(21, 90);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(94, 15);
+            this.label1.Size = new System.Drawing.Size(95, 15);
             this.label1.TabIndex = 4;
             this.label1.Text = "Proxy (optional):";
             // 
@@ -134,7 +134,7 @@
             this.label2.AutoSize = true;
             this.label2.Location = new System.Drawing.Point(121, 113);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(231, 15);
+            this.label2.Size = new System.Drawing.Size(232, 15);
             this.label2.TabIndex = 7;
             this.label2.Text = "Example: https://user:password@host:port";
             // 
@@ -154,7 +154,7 @@
             // 
             this.txtAPIURL.Location = new System.Drawing.Point(124, 43);
             this.txtAPIURL.Name = "txtAPIURL";
-            this.txtAPIURL.Size = new System.Drawing.Size(372, 23);
+            this.txtAPIURL.Size = new System.Drawing.Size(371, 23);
             this.txtAPIURL.TabIndex = 4;
             // 
             // label3
@@ -177,63 +177,119 @@
             // 
             // groupBox1
             // 
-            this.groupBox1.Controls.Add(this.checkBox4);
-            this.groupBox1.Controls.Add(this.checkBox1);
-            this.groupBox1.Controls.Add(this.radioButton2);
+            this.groupBox1.Controls.Add(this.chkUseCustomMapping);
+            this.groupBox1.Controls.Add(this.radioDetectionPriority_lexerLanguage);
             this.groupBox1.Controls.Add(this.label6);
-            this.groupBox1.Controls.Add(this.radioButton1);
-            this.groupBox1.Controls.Add(this.button1);
-            this.groupBox1.Controls.Add(this.label5);
-            this.groupBox1.Controls.Add(this.checkBox3);
-            this.groupBox1.Controls.Add(this.checkBox2);
+            this.groupBox1.Controls.Add(this.radioDetectionPriority_extensionMapping);
+            this.groupBox1.Controls.Add(this.btnOpenCustomMappingFile);
+            this.groupBox1.Controls.Add(this.labelDetectionOrder);
+            this.groupBox1.Controls.Add(this.chkUseExtensionMapping);
+            this.groupBox1.Controls.Add(this.chkUseLexerLanguage);
             this.groupBox1.Location = new System.Drawing.Point(120, 200);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(376, 208);
+            this.groupBox1.Size = new System.Drawing.Size(375, 183);
             this.groupBox1.TabIndex = 12;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Language detection";
             // 
-            // checkBox2
+            // chkUseCustomMapping
             // 
-            this.checkBox2.AutoSize = true;
-            this.checkBox2.Checked = true;
-            this.checkBox2.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.checkBox2.Location = new System.Drawing.Point(8, 40);
-            this.checkBox2.Name = "checkBox2";
-            this.checkBox2.Size = new System.Drawing.Size(320, 19);
-            this.checkBox2.TabIndex = 1;
-            this.checkBox2.Text = "Use Notepad++ lexer language (top menu → Language)";
-            this.checkBox2.UseVisualStyleBackColor = true;
+            this.chkUseCustomMapping.AutoSize = true;
+            this.chkUseCustomMapping.Location = new System.Drawing.Point(8, 89);
+            this.chkUseCustomMapping.Name = "chkUseCustomMapping";
+            this.chkUseCustomMapping.Size = new System.Drawing.Size(297, 19);
+            this.chkUseCustomMapping.TabIndex = 9;
+            this.chkUseCustomMapping.Text = "Override file extension mappings with custom ones";
+            this.chkUseCustomMapping.UseVisualStyleBackColor = true;
+            this.chkUseCustomMapping.CheckedChanged += new System.EventHandler(this.LanguageDetectionUIRefresh);
             // 
-            // checkBox3
+            // radioDetectionPriority_lexerLanguage
             // 
-            this.checkBox3.AutoSize = true;
-            this.checkBox3.Location = new System.Drawing.Point(8, 16);
-            this.checkBox3.Name = "checkBox3";
-            this.checkBox3.Size = new System.Drawing.Size(230, 19);
-            this.checkBox3.TabIndex = 2;
-            this.checkBox3.Text = "Use Code::Stats file extension mapping";
-            this.checkBox3.UseVisualStyleBackColor = true;
+            this.radioDetectionPriority_lexerLanguage.AutoSize = true;
+            this.radioDetectionPriority_lexerLanguage.Location = new System.Drawing.Point(240, 64);
+            this.radioDetectionPriority_lexerLanguage.Name = "radioDetectionPriority_lexerLanguage";
+            this.radioDetectionPriority_lexerLanguage.Size = new System.Drawing.Size(102, 19);
+            this.radioDetectionPriority_lexerLanguage.TabIndex = 7;
+            this.radioDetectionPriority_lexerLanguage.TabStop = true;
+            this.radioDetectionPriority_lexerLanguage.Text = "lexer language";
+            this.radioDetectionPriority_lexerLanguage.UseVisualStyleBackColor = true;
+            this.radioDetectionPriority_lexerLanguage.CheckedChanged += new System.EventHandler(this.LanguageDetectionUIRefresh);
             // 
-            // label5
+            // label6
             // 
-            this.label5.Location = new System.Drawing.Point(8, 152);
-            this.label5.Name = "label5";
-            this.label5.Size = new System.Drawing.Size(352, 48);
-            this.label5.TabIndex = 3;
-            this.label5.Text = "Detection order: custom file extension mapping, file extension mapping, lexer lan" +
+            this.label6.AutoSize = true;
+            this.label6.Location = new System.Drawing.Point(8, 65);
+            this.label6.Name = "label6";
+            this.label6.Size = new System.Drawing.Size(102, 15);
+            this.label6.TabIndex = 6;
+            this.label6.Text = "Detection priority:";
+            // 
+            // radioDetectionPriority_extensionMapping
+            // 
+            this.radioDetectionPriority_extensionMapping.AutoSize = true;
+            this.radioDetectionPriority_extensionMapping.Location = new System.Drawing.Point(112, 64);
+            this.radioDetectionPriority_extensionMapping.Name = "radioDetectionPriority_extensionMapping";
+            this.radioDetectionPriority_extensionMapping.Size = new System.Drawing.Size(127, 19);
+            this.radioDetectionPriority_extensionMapping.TabIndex = 5;
+            this.radioDetectionPriority_extensionMapping.TabStop = true;
+            this.radioDetectionPriority_extensionMapping.Text = "extension mapping";
+            this.radioDetectionPriority_extensionMapping.UseVisualStyleBackColor = true;
+            this.radioDetectionPriority_extensionMapping.CheckedChanged += new System.EventHandler(this.LanguageDetectionUIRefresh);
+            // 
+            // btnOpenCustomMappingFile
+            // 
+            this.btnOpenCustomMappingFile.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.btnOpenCustomMappingFile.Location = new System.Drawing.Point(311, 86);
+            this.btnOpenCustomMappingFile.Name = "btnOpenCustomMappingFile";
+            this.btnOpenCustomMappingFile.Size = new System.Drawing.Size(49, 23);
+            this.btnOpenCustomMappingFile.TabIndex = 4;
+            this.btnOpenCustomMappingFile.Text = "Open";
+            this.btnOpenCustomMappingFile.UseVisualStyleBackColor = true;
+            // 
+            // labelDetectionOrder
+            // 
+            this.labelDetectionOrder.Location = new System.Drawing.Point(8, 121);
+            this.labelDetectionOrder.Name = "labelDetectionOrder";
+            this.labelDetectionOrder.Size = new System.Drawing.Size(352, 48);
+            this.labelDetectionOrder.TabIndex = 3;
+            this.labelDetectionOrder.Text = "Detection order: custom file extension mapping, file extension mapping, lexer lan" +
     "guage (custom language definitions are unsupported due to plugin interface limit" +
     "ations)";
             // 
-            // button1
+            // chkUseExtensionMapping
             // 
-            this.button1.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.button1.Location = new System.Drawing.Point(304, 110);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(64, 23);
-            this.button1.TabIndex = 4;
-            this.button1.Text = "Open";
-            this.button1.UseVisualStyleBackColor = true;
+            this.chkUseExtensionMapping.AutoSize = true;
+            this.chkUseExtensionMapping.Location = new System.Drawing.Point(8, 16);
+            this.chkUseExtensionMapping.Name = "chkUseExtensionMapping";
+            this.chkUseExtensionMapping.Size = new System.Drawing.Size(231, 19);
+            this.chkUseExtensionMapping.TabIndex = 2;
+            this.chkUseExtensionMapping.Text = "Use Code::Stats file extension mapping";
+            this.chkUseExtensionMapping.UseVisualStyleBackColor = true;
+            this.chkUseExtensionMapping.CheckedChanged += new System.EventHandler(this.LanguageDetectionUIRefresh);
+            // 
+            // chkUseLexerLanguage
+            // 
+            this.chkUseLexerLanguage.AutoSize = true;
+            this.chkUseLexerLanguage.Checked = true;
+            this.chkUseLexerLanguage.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.chkUseLexerLanguage.Location = new System.Drawing.Point(8, 40);
+            this.chkUseLexerLanguage.Name = "chkUseLexerLanguage";
+            this.chkUseLexerLanguage.Size = new System.Drawing.Size(321, 19);
+            this.chkUseLexerLanguage.TabIndex = 1;
+            this.chkUseLexerLanguage.Text = "Use Notepad++ lexer language (top menu → Language)";
+            this.chkUseLexerLanguage.UseVisualStyleBackColor = true;
+            this.chkUseLexerLanguage.CheckedChanged += new System.EventHandler(this.LanguageDetectionUIRefresh);
+            // 
+            // checkBox1
+            // 
+            this.checkBox1.AutoSize = true;
+            this.checkBox1.Location = new System.Drawing.Point(-303, 240);
+            this.checkBox1.Name = "checkBox1";
+            this.checkBox1.Size = new System.Drawing.Size(367, 19);
+            this.checkBox1.TabIndex = 8;
+            this.checkBox1.Text = "Include user-defined langs (Language → Define your language...)";
+            this.checkBox1.UseVisualStyleBackColor = true;
+            this.checkBox1.Visible = false;
             // 
             // button2
             // 
@@ -243,6 +299,7 @@
             this.button2.TabIndex = 5;
             this.button2.Text = "Show";
             this.button2.UseVisualStyleBackColor = true;
+            this.button2.Visible = false;
             // 
             // checkedListBox1
             // 
@@ -257,63 +314,13 @@
             this.checkedListBox1.TabIndex = 13;
             this.checkedListBox1.Visible = false;
             // 
-            // radioButton1
-            // 
-            this.radioButton1.AutoSize = true;
-            this.radioButton1.Location = new System.Drawing.Point(112, 64);
-            this.radioButton1.Name = "radioButton1";
-            this.radioButton1.Size = new System.Drawing.Size(126, 19);
-            this.radioButton1.TabIndex = 5;
-            this.radioButton1.TabStop = true;
-            this.radioButton1.Text = "extension mapping";
-            this.radioButton1.UseVisualStyleBackColor = true;
-            // 
-            // label6
-            // 
-            this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(8, 65);
-            this.label6.Name = "label6";
-            this.label6.Size = new System.Drawing.Size(102, 15);
-            this.label6.TabIndex = 6;
-            this.label6.Text = "Detection priority:";
-            // 
-            // radioButton2
-            // 
-            this.radioButton2.AutoSize = true;
-            this.radioButton2.Location = new System.Drawing.Point(240, 64);
-            this.radioButton2.Name = "radioButton2";
-            this.radioButton2.Size = new System.Drawing.Size(101, 19);
-            this.radioButton2.TabIndex = 7;
-            this.radioButton2.TabStop = true;
-            this.radioButton2.Text = "lexer language";
-            this.radioButton2.UseVisualStyleBackColor = true;
-            // 
-            // checkBox1
-            // 
-            this.checkBox1.AutoSize = true;
-            this.checkBox1.Location = new System.Drawing.Point(8, 88);
-            this.checkBox1.Name = "checkBox1";
-            this.checkBox1.Size = new System.Drawing.Size(367, 19);
-            this.checkBox1.TabIndex = 8;
-            this.checkBox1.Text = "Include user-defined langs (Language → Define your language...)";
-            this.checkBox1.UseVisualStyleBackColor = true;
-            // 
-            // checkBox4
-            // 
-            this.checkBox4.AutoSize = true;
-            this.checkBox4.Location = new System.Drawing.Point(8, 112);
-            this.checkBox4.Name = "checkBox4";
-            this.checkBox4.Size = new System.Drawing.Size(296, 19);
-            this.checkBox4.TabIndex = 9;
-            this.checkBox4.Text = "Override file extension mappings with custom ones";
-            this.checkBox4.UseVisualStyleBackColor = true;
-            // 
             // SettingsForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(536, 492);
+            this.ClientSize = new System.Drawing.Size(536, 441);
             this.Controls.Add(this.button2);
+            this.Controls.Add(this.checkBox1);
             this.Controls.Add(this.checkedListBox1);
             this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.txtProxy);
@@ -356,15 +363,15 @@
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.GroupBox groupBox1;
         private System.Windows.Forms.Button button2;
-        private System.Windows.Forms.Button button1;
-        private System.Windows.Forms.Label label5;
-        private System.Windows.Forms.CheckBox checkBox3;
-        private System.Windows.Forms.CheckBox checkBox2;
+        private System.Windows.Forms.Button btnOpenCustomMappingFile;
+        private System.Windows.Forms.Label labelDetectionOrder;
+        private System.Windows.Forms.CheckBox chkUseExtensionMapping;
+        private System.Windows.Forms.CheckBox chkUseLexerLanguage;
         private System.Windows.Forms.CheckedListBox checkedListBox1;
-        private System.Windows.Forms.CheckBox checkBox4;
+        private System.Windows.Forms.CheckBox chkUseCustomMapping;
         private System.Windows.Forms.CheckBox checkBox1;
-        private System.Windows.Forms.RadioButton radioButton2;
+        private System.Windows.Forms.RadioButton radioDetectionPriority_lexerLanguage;
         private System.Windows.Forms.Label label6;
-        private System.Windows.Forms.RadioButton radioButton1;
+        private System.Windows.Forms.RadioButton radioDetectionPriority_extensionMapping;
     }
 }

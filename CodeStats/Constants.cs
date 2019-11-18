@@ -22,6 +22,15 @@ namespace CodeStats
         }
 
         internal static string ApiMyPulsesEndpoint = "https://codestats.net/api/my/pulses";
+
+        internal static string OSVersionString = System.Environment.OSVersion.VersionString;
+        internal static int OSVersionBuild = System.Environment.OSVersion.Version.Build;
+
+        internal enum DetectionType {
+            EXTENSION_MAPPING,
+            LEXER_LANGUAGE,
+            CUSTOM_MAPPING
+        };
         
         internal static Func<string> LatestPluginVersion = () =>
         {

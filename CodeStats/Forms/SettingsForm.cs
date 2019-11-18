@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Windows.Forms;
+using static CodeStats.Constants;
 
 namespace CodeStats.Forms
 {
@@ -91,9 +93,16 @@ namespace CodeStats.Forms
                     _CodeStatsConfigFile.Debug = chkDebugMode.Checked;
                     _CodeStatsConfigFile.Stats = chkStats.Checked;
 
+                    LanguageDetectionUIRefresh();
+                    _CodeStatsConfigFile.UseExtensionMapping = chkUseExtensionMapping.Checked;
+                    _CodeStatsConfigFile.UseLexerLanguage = chkUseExtensionMapping.Checked;
+                    _CodeStatsConfigFile.DetectionPriority = !radioDetectionPriority_extensionMapping.Checked ? Constants.DetectionType.LEXER_LANGUAGE : Constants.DetectionType.EXTENSION_MAPPING;
+                    _CodeStatsConfigFile.UseCustomMapping = chkUseCustomMapping.Checked;
+
                     _CodeStatsConfigFile.Save();
 
-                    CodeStatsPackage.GetSettings(); // reload settings in main class
+                    OnConfigSaved();
+                    //CodeStatsPackage.GetSettings(); // reload settings in main class
 
                     CodeStatsPackage._hasAlreadyShownInvalidApiTokenMessage = false;
 
@@ -102,7 +111,6 @@ namespace CodeStats.Forms
                         CodeStatsPackage.ReportStats();
                     }
 
-                    OnConfigSaved();
                 /*}
                 else // - kept in case we check API tokens in future
                 {
@@ -123,7 +131,7 @@ namespace CodeStats.Forms
             if (handler != null) handler(this, EventArgs.Empty);
         }
 
-        public void FocusTxtAPIURL(bool tooltipShowAlways = false)
+        public void FocusTxtAPIURL()
         {
             this.ActiveControl = txtAPIURL;
             this.txtAPIURL.Focus();
@@ -134,7 +142,6 @@ namespace CodeStats.Forms
         {
             // https://www.c-sharpcorner.com/uploadfile/mahesh/tooltip-in-C-Sharp/
             // https://stackoverflow.com/questions/168550/display-a-tooltip-over-a-button-using-windows-forms
-            /*ToolTip*/
             apiurlToolTip = new ToolTip();
             apiurlToolTip.ToolTipTitle = "Tip";
             //apiurlToolTip.IsBalloon = true;
@@ -143,5 +150,63 @@ namespace CodeStats.Forms
             //apiurlToolTip.SetToolTip(txtAPIURL, "To restore the default API URL, simply remove the contents of this field and hit Save.");
         }
 
+        private List<string> LanguageDetectionUIRefresh()
+        {
+            string detectionOrder = "Detection order: ";
+            List<string> things = new List<string>();
+
+            if (chkUseCustomMapping.Checked)
+            {
+                things.Add("custom file extension mapping");
+            }
+
+            if (chkUseExtensionMapping.Checked && chkUseLexerLanguage.Checked)
+            {
+                radioDetectionPriority_extensionMapping.Enabled = true;
+                radioDetectionPriority_lexerLanguage.Enabled = true;
+
+                if ((!radioDetectionPriority_extensionMapping.Checked && !radioDetectionPriority_lexerLanguage.Checked)
+                    || (radioDetectionPriority_extensionMapping.Checked && radioDetectionPriority_lexerLanguage.Checked))
+                {
+                    radioDetectionPriority_extensionMapping.Checked = true;
+                    radioDetectionPriority_lexerLanguage.Checked = false;
+                }
+
+                if (radioDetectionPriority_extensionMapping.Checked)
+                {
+                    things.Add("file extension mapping");
+                    things.Add("lexer language (custom language definitions are unsupported due to plugin interface limitations)");
+                }
+                else if (radioDetectionPriority_lexerLanguage.Checked)
+                {
+                    things.Add("lexer language (custom language definitions are unsupported due to plugin interface limitations)");
+                    things.Add("file extension mapping");
+                }
+            }
+            else
+            {
+                radioDetectionPriority_extensionMapping.Enabled = false;
+                radioDetectionPriority_lexerLanguage.Enabled = false;
+
+                if (chkUseExtensionMapping.Checked)
+                {
+                    things.Add("file extension mapping");
+                }
+                else if (chkUseLexerLanguage.Checked)
+                {
+                    things.Add("lexer language (custom language definitions are unsupported due to plugin interface limitations)");
+                }
+            }
+
+            detectionOrder += string.Join(", ", things);
+            labelDetectionOrder.Text = detectionOrder;
+
+            return things;
+        }
+
+        private void LanguageDetectionUIRefresh(object sender, EventArgs e)
+        {
+            LanguageDetectionUIRefresh();
+        }
     }
 }
