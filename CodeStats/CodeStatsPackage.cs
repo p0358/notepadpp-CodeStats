@@ -39,6 +39,7 @@ namespace CodeStats
         public static string ApiKey;
         public static string ApiUrl;
         public static string Proxy;
+        public static bool proxyChangePending = false;
         public static bool Stats;
         public static string Guid;
         public static List<Constants.DetectionType> DetectionOrder;
@@ -108,13 +109,12 @@ namespace CodeStats
             try
             {
                 currentPulse = new Pulse();
-                pulseProcessor_httpClientHandler = new HttpClientHandler();
 
+                Logger.Info("Initialing settings form...");
                 // Settings Form
                 _settingsForm = new CodeStats.Forms.SettingsForm();
                 _settingsForm.ConfigSaved += SettingsFormOnConfigSaved;
-
-                Logger.Info("Initialized settings form");
+                Logger.Info("Initialized settings form"); // it takes 5 seconds to get here from Initializing Code::Stats message...
 
                 // Load config file
                 _CodeStatsConfigFile = new ConfigFile();
@@ -147,6 +147,9 @@ namespace CodeStats
 
                 // setup timer to process queued pulses
                 pulseProcessor_tokensource = new CancellationTokenSource();
+                pulseProcessor_httpClientHandler = new HttpClientHandler();
+                pulseProcessor_httpClientHandler.Proxy = GetProxy();
+                proxyChangePending = false;
                 pulseProcessor_client = new HttpClient(pulseProcessor_httpClientHandler);
                 timer.Interval = pulseFrequency;
                 timer.Elapsed += ProcessPulses;
@@ -426,7 +429,14 @@ namespace CodeStats
                         return;
                     }
 
-                    var client = new WebClient { Proxy = CodeStatsPackage.GetProxy() };
+                    if (proxyChangePending)
+                    {
+                        pulseProcessor_httpClientHandler = new HttpClientHandler();
+                        pulseProcessor_httpClientHandler.Proxy = GetProxy();
+                        pulseProcessor_client = new HttpClient(pulseProcessor_httpClientHandler);
+                        proxyChangePending = false;
+                    }
+                    //var client = new WebClient { Proxy = CodeStatsPackage.GetProxy() };
                     var jsonSerializer = new JavaScriptSerializer();
 
                     string URL;
@@ -440,10 +450,10 @@ namespace CodeStats
                         URL = ApiUrl;
                         usesCustomEndpoint = true;
                     }
-                    client.Headers["User-Agent"] = Constants.PluginUserAgent;
+                    /*client.Headers["User-Agent"] = Constants.PluginUserAgent;
                     client.Headers["Content-Type"] = "application/json";
-                    client.Headers["Accept"] = "*/*";
-                    client.Headers["X-API-Token"] = ApiKey;
+                    client.Headers["Accept"] = "* /*";
+                    client.Headers["X-API-Token"] = ApiKey;*/
 
                     Pulse result;
                     while (pulseQueue.TryDequeue(out result))
@@ -451,14 +461,27 @@ namespace CodeStats
                         if (!result.isEmpty())
                         {
                             bool error = false;
+                            HttpResponseMessage response = null;
                             // Try to pulse to API
                             try
                             {
-                                string json = jsonSerializer.Serialize(result);
+                                string json;
+                                var httpRequestMessage = new HttpRequestMessage
+                                {
+                                    Method = HttpMethod.Post,
+                                    RequestUri = new Uri(URL),
+                                    Headers = {
+                                        { "User-Agent", Constants.PluginUserAgent },
+                                        { "Accept", "*/*" },
+                                        { "X-API-Token", ApiKey }
+                                    },
+                                    Content = new StringContent(json = jsonSerializer.Serialize(result), Encoding.UTF8, "application/json")
+                                };
+
                                 Logger.Debug("Pulsing " + json);
-                                //string HtmlResult = client.UploadString(URL, json);
-                                string JsonResult = await client.UploadStringTaskAsync(URL, json);
-                                //client.UploadStringAsync()
+                                response = await pulseProcessor_client.SendAsync(httpRequestMessage, tokenSource.Token);
+                                response.EnsureSuccessStatusCode();
+                                string JsonResult = await response.Content.ReadAsStringAsync();
                                 _lastPulse = DateTime.Now;
                                 if (!JsonResult.Contains(@"""ok""") && !JsonResult.Contains(@"success"))
                                 {
@@ -466,48 +489,46 @@ namespace CodeStats
                                     Logger.Error(@"Error pulsing, response does not contain ""ok"" or ""success"": " + JsonResult);
                                 }
                             }
-                            catch (WebException ex)
+                            catch (TaskCanceledException)
+                            {
+                                pulseQueue.Enqueue(result); // requeue current pulse
+                                return;
+                            }
+                            catch (HttpRequestException ex)
                             {
                                 error = true;
-                                if (ex.Status == WebExceptionStatus.ProtocolError)
+                                if (response != null && response.StatusCode != 0)
                                 {
-                                    var response = ex.Response as HttpWebResponse;
-                                    if (response != null)
+                                    if ((int)response.StatusCode == 403)
                                     {
-                                        if ((int)response.StatusCode == 403)
+                                        Logger.Error("Could not pulse (error 403). Please make sure you entered a valid API token in Code::Stats settings.", ex);
+                                        if (!_hasAlreadyShownInvalidApiTokenMessage) // we want to inform user only once, and if they do not provide the token, let's not bomb him with error each time after they type something
                                         {
-                                            Logger.Error("Could not pulse (error 403). Please make sure you entered a valid API token in Code::Stats settings.", ex);
-                                            if (!_hasAlreadyShownInvalidApiTokenMessage) // we want to inform user only once, and if they do not provide the token, let's not bomb him with error each time after they type something
-                                            {
-                                                _hasAlreadyShownInvalidApiTokenMessage = true;
-                                                MessageBox.Show("Could not pulse. Please make sure you entered a valid API token in Code::Stats settings.\nAll recorded XP from this session will be lost if you do not provide the correct API token!", "Code::Stats – error 403", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                                                PromptApiKey();
-                                            }
+                                            _hasAlreadyShownInvalidApiTokenMessage = true;
+                                            MessageBox.Show("Could not pulse. Please make sure you entered a valid API token in Code::Stats settings.\nAll recorded XP from this session will be lost if you do not provide the correct API token!", "Code::Stats – error 403", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                            PromptApiKey();
                                         }
-                                        else if ((int)response.StatusCode == 404 && usesCustomEndpoint)
-                                        {
-                                            Logger.Error("Could not pulse (error 404). The entered custom endpoint (" + URL + ") is invalid. ", ex);
-                                            MessageBox.Show("Could not pulse. Invalid API endpoint URL. Please make sure you entered a valid API URL in Code::Stats settings or delete the value altogether to restore the default.\nAll recorded XP from this session will be lost if you do not provide the correct API URL path!", "Code::Stats – error 404", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                                    }
+                                    else if ((int)response.StatusCode == 404 && usesCustomEndpoint)
+                                    {
+                                        Logger.Error("Could not pulse (error 404). The entered custom endpoint (" + URL + ") is invalid. ", ex);
+                                        MessageBox.Show("Could not pulse. Invalid API endpoint URL. Please make sure you entered a valid API URL in Code::Stats settings or delete the value altogether to restore the default.\nAll recorded XP from this session will be lost if you do not provide the correct API URL path!", "Code::Stats – error 404", MessageBoxButtons.OK, MessageBoxIcon.Error);
 
-                                            //_settingsForm.txtAPIURL.Focus();
-                                            //_settingsForm.txtAPIURL.SelectAll();
-                                            _settingsForm.FocusTxtAPIURL();
-                                            _settingsForm.ShowAPIURLTooltip();
-                                            SettingsPopup();
-                                            _settingsForm.ShowAPIURLTooltip();
-                                        }
-                                        else
-                                        {
-                                            Logger.Error("Could not pulse - HTTP error " + (int)response.StatusCode + ". Server response: " + response.GetResponseStream().ToString(), ex);
-                                        }
+                                        _settingsForm.FocusTxtAPIURL();
+                                        _settingsForm.ShowAPIURLTooltip();
+                                        SettingsPopup();
+                                        _settingsForm.ShowAPIURLTooltip();
                                     }
                                     else
                                     {
-                                        // response==null - no http status code available
-                                        Logger.Error("Could not pulse. Are you behind a proxy? Try setting a proxy in Code::Stats settings with format https://user:pass@host:port. Exception Traceback", ex);
+                                        Logger.Error("Could not pulse - HTTP error " + (int)response.StatusCode + ". Server response: " + response.Content.ReadAsStringAsync().Result, ex);
                                     }
                                 }
-                                else Logger.Error("Could not pulse. Are you behind a proxy? Try setting a proxy in Code::Stats settings with format https://user:pass@host:port. Exception Traceback", ex);
+                                else
+                                {
+                                    // response==null - no http status code available
+                                    Logger.Error("Could not pulse. Are you behind a proxy? Try setting a proxy in Code::Stats settings with format https://user:pass@host:port. Exception Traceback", ex);
+                                }
                             }
                             catch (Exception ex)
                             {
@@ -522,6 +543,9 @@ namespace CodeStats
                             }
 
                         }
+
+                        if (tokenSource.Token.IsCancellationRequested)
+                            tokenSource.Token.ThrowIfCancellationRequested();
                     }
                 }
             }, tokenSource.Token);
@@ -699,7 +723,7 @@ namespace CodeStats
             CodeStatsPackage.Guid = _CodeStatsConfigFile.Guid;
             DetectionOrder = _CodeStatsConfigFile.DetectionOrder;
 
-            pulseProcessor_httpClientHandler.Proxy = GetProxy();
+            proxyChangePending = true;
         }
 
         private static void PromptApiKey()
@@ -823,6 +847,18 @@ namespace CodeStats
         {
             nppStarted = false;
 
+            Logger.Debug("Cancelling pulses...");
+
+            // Flush the current pulse
+            if (pulseQueue != null && currentPulse != null && !currentPulse.isEmpty())
+            {
+                pulseQueue.Enqueue(currentPulse);
+                currentPulse = new Pulse();
+                currentCount = 0;
+            }
+
+            pulseProcessor_tokensource.Cancel();
+
             if (timer != null)
             {
                 timer.Stop();
@@ -833,6 +869,20 @@ namespace CodeStats
                 // make sure the queue is empty
                 //ProcessPulses();
             }
+
+            // test if we can cancel and dump pulses
+            var jsonSerializer = new JavaScriptSerializer();
+            pulseProcessor.Wait();
+            Pulse result;
+            while (pulseQueue.TryDequeue(out result))
+            {
+                if (!result.isEmpty())
+                {
+                    string json = jsonSerializer.Serialize(result);
+                    Logger.Debug("Unsaved pulse: " + json);
+                }
+            }
         }
+                    
     }
 }
