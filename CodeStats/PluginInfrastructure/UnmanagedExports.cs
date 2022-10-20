@@ -56,7 +56,8 @@ namespace Kbg.NppPluginNET
             else if (notification.Header.Code == (uint)NppMsg.NPPN_SHUTDOWN)
             {
                 CodeStatsPackage.PluginCleanUp();
-                Marshal.FreeHGlobal(_ptrPluginName);
+                if (_ptrPluginName != IntPtr.Zero)
+                    Marshal.FreeHGlobal(_ptrPluginName);
             }
             else
             {

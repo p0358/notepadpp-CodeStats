@@ -26,7 +26,7 @@ namespace CodeStats
 
         static int idMyDlg = -1;
         static Bitmap tbBmp = Properties.Resources.CodeStats;
-        
+
         static ConfigFile _CodeStatsConfigFile;
         public static CodeStats.Forms.SettingsForm _settingsForm;
         public static CodeStats.Forms.ApiKeyForm _apikeyForm; // should be null if not needed
@@ -70,7 +70,7 @@ namespace CodeStats
 
         internal static void CommandMenuInit()
         {
-            
+
             // must add menu item in foreground thread
             PluginBase.SetCommand(0, "Code::Stats settings", SettingsPopup, new ShortcutKey(false, false, false, Keys.None));
             idMyDlg = 0;
@@ -312,8 +312,8 @@ namespace CodeStats
                 Logger.Info("1. File: " + GetCurrentFile() + ", char: " + notification.character + ", nppstarted: " + nppStarted.ToString() + ", flags: " + notification.ModificationType.ToString("X"));
             }*/ // Too unstable - 0x2012 (ModificationType) might be used for deleting of selected text, but it's still nowhere near good
 
-                // TODO: Could use SCN_MODIFIED perhaps, but check for file status with NPPM_READY (don't count before this one), 
-                // NPPM_FILE_BEFORE_LOAD, (NPPM_FILE_LOAD_FAILED), NPPM_FILE_OPENED (then start counting?), NPPM_FILEBEFORECLOSE [http://docs.notepad-plus-plus.org/index.php/Messages_And_Notifications]
+            // TODO: Could use SCN_MODIFIED perhaps, but check for file status with NPPM_READY (don't count before this one), 
+            // NPPM_FILE_BEFORE_LOAD, (NPPM_FILE_LOAD_FAILED), NPPM_FILE_OPENED (then start counting?), NPPM_FILEBEFORECLOSE [http://docs.notepad-plus-plus.org/index.php/Messages_And_Notifications]
 
             if (notification.Header.Code == (uint)SciMsg.SCN_CHARADDED) // our best bet
             {
@@ -396,7 +396,7 @@ namespace CodeStats
                             {
                                 pulseProcessor = ProcessPulses(pulseProcessor_tokensource);
                             }
-                            catch (OperationCanceledException) {}
+                            catch (OperationCanceledException) { }
                         }
                         //ProcessPulses();
                     }
@@ -729,7 +729,8 @@ namespace CodeStats
         private static void PromptApiKey()
         {
             Logger.Info("Please input your API token into the Code::Stats window.");
-            /*var form*/_apikeyForm = new CodeStats.Forms.ApiKeyForm();
+            /*var form*/
+            _apikeyForm = new CodeStats.Forms.ApiKeyForm();
             _apikeyForm.ShowDialog();
         }
 
@@ -883,6 +884,6 @@ namespace CodeStats
                 }
             }
         }
-                    
+
     }
 }
