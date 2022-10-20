@@ -29,7 +29,7 @@ namespace CodeStats.Forms
                 chkStats.Checked = _CodeStatsConfigFile.Stats;
                 if (String.IsNullOrWhiteSpace(_CodeStatsConfigFile.ApiUrl))
                 {
-                    txtAPIURL.Text = Constants.ApiMyPulsesEndpoint;
+                    txtAPIURL.Text = Constants.ApiEndpoint;
                 }
                 else
                 {
@@ -60,7 +60,7 @@ namespace CodeStats.Forms
                                      
                 //if (true)
                 //{
-                    if (String.IsNullOrWhiteSpace(txtAPIURL.Text) || txtAPIURL.Text == Constants.ApiMyPulsesEndpoint)
+                    if (String.IsNullOrWhiteSpace(txtAPIURL.Text) || txtAPIURL.Text == Constants.ApiEndpoint)
                     {
                         //_CodeStatsConfigFile.ApiUrl = Constants.ApiMyPulsesEndpoint;
                         _CodeStatsConfigFile.ApiUrl = string.Empty;

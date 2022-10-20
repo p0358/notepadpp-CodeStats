@@ -438,13 +438,15 @@ namespace CodeStats
                     bool usesCustomEndpoint = false;
                     if (String.IsNullOrWhiteSpace(ApiUrl))
                     {
-                        URL = Constants.ApiMyPulsesEndpoint;
+                        URL = Constants.ApiEndpoint;
                     }
                     else
                     {
                         URL = ApiUrl;
                         usesCustomEndpoint = true;
                     }
+                    if (!URL.EndsWith("my/pulses"))
+                        URL += "my/pulses";
                     /*client.Headers["User-Agent"] = Constants.PluginUserAgent;
                     client.Headers["Content-Type"] = "application/json";
                     client.Headers["Accept"] = "* /*";

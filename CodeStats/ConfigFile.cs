@@ -141,7 +141,7 @@ namespace CodeStats
             if (!string.IsNullOrWhiteSpace(ApiKey))
                 NativeMethods.WritePrivateProfileString("settings", "api_key", ApiKey.Trim(), _configFilepath);
 
-            if (ApiUrl == Constants.ApiMyPulsesEndpoint || string.IsNullOrWhiteSpace(ApiUrl))
+            if (ApiUrl == Constants.ApiEndpoint || string.IsNullOrWhiteSpace(ApiUrl))
             {
                 NativeMethods.WritePrivateProfileString("settings", "api_url", string.Empty, _configFilepath);
             }
