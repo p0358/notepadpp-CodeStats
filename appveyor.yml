@@ -1,4 +1,4 @@
-version: 1.1.0.{build}
+version: build-{build}
 image: Visual Studio 2017
 
 platform:
@@ -18,24 +18,22 @@ build_script:
     - msbuild CodeStats.sln /m /p:configuration="%configuration%" /p:platform="%platform%" /logger:"C:\Program Files\AppVeyor\BuildAgent\Appveyor.MSBuildLogger.dll"
 
 after_build:
-    - cd "%APPVEYOR_BUILD_FOLDER%"\CodeStats
+    - cd "%APPVEYOR_BUILD_FOLDER%"
     - ps: >-
 
         if ($env:PLATFORM -eq "x64" -and $env:CONFIGURATION -eq "Release") {
-            Push-AppveyorArtifact "bin\x64\$env:CONFIGURATION\CodeStats.dll" -FileName CodeStats.dll
+            Push-AppveyorArtifact "CodeStats\bin\x64\$env:CONFIGURATION\CodeStats.dll" -FileName CodeStats_x64.dll
         }
 
         if ($env:PLATFORM -eq "x86" -and $env:CONFIGURATION -eq "Release") {
-            Push-AppveyorArtifact "bin\$env:CONFIGURATION\CodeStats.dll" -FileName CodeStats.dll
+            Push-AppveyorArtifact "CodeStats\bin\$env:CONFIGURATION\CodeStats.dll" -FileName CodeStats_x86.dll
         }
 
-        if ($($env:APPVEYOR_REPO_TAG) -eq "true" -and $env:CONFIGURATION -eq "Release") {
-            if ($env:PLATFORM -eq "x64" -or $env:PLATFORM -eq "x86") {
-                $ZipFileName = "notepadpp-CodeStats_$($env:APPVEYOR_REPO_TAG_NAME)_$($env:PLATFORM).zip"
-                Remove-Item bin\$env:PLATFORM\$env:CONFIGURATION\*.exp
-                Remove-Item bin\$env:PLATFORM\$env:CONFIGURATION\*.lib
-                7z a $ZipFileName bin\$env:PLATFORM\$env:CONFIGURATION\*
-            }
+        if ($env:PLATFORM -eq "x64" -or $env:PLATFORM -eq "x86") {
+            $ZipFileName = "notepadpp-CodeStats_$($env:APPVEYOR_REPO_TAG_NAME)_$($env:PLATFORM).zip"
+            Remove-Item CodeStats\bin\$env:PLATFORM\$env:CONFIGURATION\*.exp
+            Remove-Item CodeStats\bin\$env:PLATFORM\$env:CONFIGURATION\*.lib
+            7z a $ZipFileName CodeStats\bin\$env:PLATFORM\$env:CONFIGURATION\*
         }
 
 artifacts:
