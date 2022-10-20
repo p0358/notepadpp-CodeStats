@@ -1,5 +1,5 @@
 version: build-{build}
-image: Visual Studio 2017
+image: Visual Studio 2019
 
 platform:
     - x64
@@ -21,20 +21,14 @@ after_build:
     - cd "%APPVEYOR_BUILD_FOLDER%"
     - ps: >-
 
-        if ($env:PLATFORM -eq "x64" -and $env:CONFIGURATION -eq "Release") {
-            Push-AppveyorArtifact "CodeStats\bin\x64\$env:CONFIGURATION\CodeStats.dll" -FileName CodeStats_x64.dll
+        if ($env:CONFIGURATION -eq "Release") {
+            Push-AppveyorArtifact "CodeStats\bin\$env:PLATFORM\$env:CONFIGURATION\CodeStats.dll" -FileName CodeStats_$($env:PLATFORM).dll
         }
 
-        if ($env:PLATFORM -eq "x86" -and $env:CONFIGURATION -eq "Release") {
-            Push-AppveyorArtifact "CodeStats\bin\$env:CONFIGURATION\CodeStats.dll" -FileName CodeStats_x86.dll
-        }
-
-        if ($env:PLATFORM -eq "x64" -or $env:PLATFORM -eq "x86") {
-            $ZipFileName = "notepadpp-CodeStats_$($env:APPVEYOR_REPO_TAG_NAME)_$($env:PLATFORM).zip"
-            Remove-Item CodeStats\bin\$env:PLATFORM\$env:CONFIGURATION\*.exp
-            Remove-Item CodeStats\bin\$env:PLATFORM\$env:CONFIGURATION\*.lib
-            7z a $ZipFileName CodeStats\bin\$env:PLATFORM\$env:CONFIGURATION\*
-        }
+        $ZipFileName = "notepadpp-CodeStats_$($env:APPVEYOR_REPO_TAG_NAME)_$($env:PLATFORM)_$($env:CONFIGURATION).zip"
+        Remove-Item CodeStats\bin\$env:PLATFORM\$env:CONFIGURATION\*.exp
+        Remove-Item CodeStats\bin\$env:PLATFORM\$env:CONFIGURATION\*.lib
+        7z a $ZipFileName CodeStats\bin\$env:PLATFORM\$env:CONFIGURATION\*
 
 artifacts:
   - path: notepadpp-CodeStats_*.zip
