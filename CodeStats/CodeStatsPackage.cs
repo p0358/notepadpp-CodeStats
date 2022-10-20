@@ -849,9 +849,10 @@ namespace CodeStats
         {
             nppStarted = false;
 
-            Logger.Debug("Cancelling pulses...");
+            Logger.Info("Plugin cleanup on shutdown...");
 
             // Flush the current pulse
+            Logger.Debug("Flushing the current pulse...");
             if (pulseQueue != null && currentPulse != null && !currentPulse.isEmpty())
             {
                 pulseQueue.Enqueue(currentPulse);
@@ -859,10 +860,12 @@ namespace CodeStats
                 currentCount = 0;
             }
 
+            Logger.Debug("Cancelling pulse processing...");
             pulseProcessor_tokensource.Cancel();
 
             if (timer != null)
             {
+                Logger.Debug("Stopping timer...");
                 timer.Stop();
                 timer.Elapsed -= ProcessPulses;
                 timer.Dispose();
@@ -873,8 +876,19 @@ namespace CodeStats
             }
 
             // test if we can cancel and dump pulses
+            Logger.Debug("Waiting for pulse processor to be cancelled...");
+            try
+            {
+                if (pulseProcessor != null)
+                    pulseProcessor.Wait();
+            }
+            catch (Exception ex)
+            {
+                Logger.Error("Exception while waiting for pulse processor to be cancelled", ex);
+            }
+
+            Logger.Debug("Dequeueing remaining queued pulses...");
             var jsonSerializer = new JavaScriptSerializer();
-            pulseProcessor.Wait();
             Pulse result;
             while (pulseQueue.TryDequeue(out result))
             {
@@ -884,6 +898,8 @@ namespace CodeStats
                     Logger.Debug("Unsaved pulse: " + json);
                 }
             }
+
+            Logger.Info("Plugin cleanup finished");
         }
 
     }
