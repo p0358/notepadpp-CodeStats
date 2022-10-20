@@ -1,5 +1,7 @@
 using Kbg.NppPluginNET.PluginInfrastructure;
 using System;
+using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -22,6 +24,7 @@ namespace CodeStats
         internal static bool hasAlreadyShownErrorBox = false;
         private static StreamWriter writer;
         private static SemaphoreSlim semaphore = new SemaphoreSlim(1, 1);
+        private static ConcurrentQueue<Func<Task>> funcTaskQueue = new ConcurrentQueue<Func<Task>>();
 
         internal static void Debug(string msg)
         {
@@ -48,9 +51,33 @@ namespace CodeStats
             Log(LogLevel.HandledException, exceptionMessage);
         }
 
+        private static bool RunNextLogTask()
+        {
+            Func<Task> result;
+            // first only peek without removing, so that EnqueueLogTask won't call another out-of-chain RunNextLogTask
+            if (funcTaskQueue.TryPeek(out result))
+            {
+                Task.Run(result).ContinueWith(task => {
+                    // dequeue current log line only now
+                    funcTaskQueue.TryDequeue(out result);
+                    RunNextLogTask();
+                });
+                return true;
+            }
+            return false; // nothing remained
+        }
+
+        private static void EnqueueLogTask(Func<Task> taskFunc)
+        {
+            bool wasEmpty = funcTaskQueue.IsEmpty;
+            funcTaskQueue.Enqueue(taskFunc);
+            if (wasEmpty)
+                RunNextLogTask();
+        }
+
         internal static void Log(LogLevel level, string msg)
         {
-            Task.Run(async () =>
+            EnqueueLogTask(async () =>
             {
                 try
                 {
@@ -76,6 +103,32 @@ namespace CodeStats
                     semaphore.Release();
                 }
             });
+        }
+
+        // called on shutdown to ensure everything is flushed synchronously
+        public static void FlushEverything()
+        {
+            if (writer == null)
+                return;
+
+            // let all log lines be written first
+            /*while (true)
+            {
+                if (!RunNextLogTask())
+                    break;
+            }*/
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
+            while (!funcTaskQueue.IsEmpty && stopwatch.ElapsedMilliseconds < 1000) // wait for max 1 second
+            {
+                semaphore.Wait();
+                semaphore.Release();
+            }
+            stopwatch.Stop();
+
+            semaphore.Wait();
+            writer.Flush();
+            semaphore.Release();
         }
 
         private static StreamWriter Setup()
