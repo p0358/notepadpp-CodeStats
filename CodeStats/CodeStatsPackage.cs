@@ -147,7 +147,8 @@ namespace CodeStats
                 pulseProcessor_client = new HttpClient(pulseProcessor_httpClientHandler);
                 timer.Interval = pulseFrequency;
                 timer.Elapsed += ProcessPulses;
-                timer.Start();
+                timer.AutoReset = false; // fire only once after it's started
+                //timer.Start();
 
                 if (Stats)
                 {
@@ -338,7 +339,7 @@ namespace CodeStats
             if (notification.Header.Code == (uint)SciMsg.SCN_CHARADDED) // our best bet
             {
                 if (Debug) Logger.Debug("[notification] SCN_CHARADDED");
-                HandleActicity();
+                HandleActivity();
                 if (Debug) Logger.Debug("SCN_CHARADDED - File: " + GetCurrentFile() + ", char: " + (char)notification.character + " (" + notification.character + "), lang: " + GetCurrentLanguage());
             }
 
@@ -350,7 +351,7 @@ namespace CodeStats
                 // It doesn't trigger on file close either, unlike on open with SC_MOD_INSERTTEXT, so we only use this, and SCN_CHARADDED for inserts
                 // It will skip Ctrl+V if it wasn't pasted on some existing text, but never mind, it is still counting the most we want
                 // And we would not like it to count random file opens or other actions in
-                HandleActicity();
+                HandleActivity();
                 if (Debug) Logger.Debug("SC_PERFORMED_USER & SC_MOD_DELETETEXT - File: " + GetCurrentFile() + ", char: " + notification.character + ", flags: " + notification.ModificationType.ToString("X"));
             }
 
@@ -379,7 +380,7 @@ namespace CodeStats
             _lastStatusBarDocTypeText = newStatusBarDocTypeText;
         }
 
-        public static void HandleActicity()
+        public static void HandleActivity()
         {
             if (!nppStarted) return;
 
@@ -394,6 +395,8 @@ namespace CodeStats
             string json = jsonSerializer.Serialize(currentPulse);
             Logger.Debug(json);*/
             _lastActivity = DateTime.Now;
+
+            timer.Start();
         }
 
         private static void FlushCurrentPulseIfNeeded()
@@ -412,8 +415,14 @@ namespace CodeStats
             {
                 try
                 {
-                    if (pulseQueue != null && ((currentPulse != null && !currentPulse.isEmpty()) || !pulseQueue.IsEmpty) && EnoughTimePassed(DateTime.Now))
+                    if (pulseQueue != null && ((currentPulse != null && !currentPulse.isEmpty()) || !pulseQueue.IsEmpty))
                     {
+                        if (!EnoughTimePassed(DateTime.Now))
+                        {
+                            timer.Start();
+                            return;
+                        }
+
                         // if current pulse is not empty, add it to the queue now
                         FlushCurrentPulseIfNeeded();
 
@@ -962,7 +971,8 @@ namespace CodeStats
                     if (!result.isEmpty())
                     {
                         string json = jsonSerializer.Serialize(result);
-                        Logger.Debug("Unsaved pulse: " + json);
+                        Logger.Info("Unsaved pulse: " + json);
+                        // TODO: dump them to file and restore
                     }
                 }
 
