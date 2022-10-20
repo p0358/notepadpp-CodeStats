@@ -976,7 +976,7 @@ namespace CodeStats
                     }
                 }
 
-                Logger.Info("Plugin cleanup finished");
+                Logger.Info("Plugin cleanup on shutdown finished");
                 Logger.FlushEverything();
             }
             catch (Exception ex)
