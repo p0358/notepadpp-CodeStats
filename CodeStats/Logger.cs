@@ -2,6 +2,8 @@ using Kbg.NppPluginNET.PluginInfrastructure;
 using System;
 using System.IO;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace CodeStats
@@ -18,7 +20,8 @@ namespace CodeStats
     {
         internal static string configDir;
         internal static bool hasAlreadyShownErrorBox = false;
-        internal static StreamWriter writer;
+        private static StreamWriter writer;
+        private static SemaphoreSlim semaphore = new SemaphoreSlim(1, 1);
 
         internal static void Debug(string msg)
         {
@@ -47,30 +50,36 @@ namespace CodeStats
 
         internal static void Log(LogLevel level, string msg)
         {
-            try
-            {      
-                //var writer = Setup();
-                if (writer == null) writer = Setup(); // we'll try to keep the file opened all the time and see how bad we end up with it
-                if (writer == null) return;
-
-                writer.WriteLine("[Code::Stats {0} {1}] {2}", Enum.GetName(level.GetType(), level), DateTime.Now.ToString("HH:mm:ss"), msg);            
-                writer.Flush();
-                //writer.Close();
-            }
-            catch (Exception ex)
+            Task.Run(async () =>
             {
-                if (!hasAlreadyShownErrorBox)
+                try
                 {
-                    hasAlreadyShownErrorBox = true;
-                    MessageBox.Show(ex.ToString() + "\n\nNo further log writing errors will be shown in this session to avoid interrupting your work.", "Error writing to log file", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
-                    //MessageBox.Show(string.Format("{0}\\{1}.log", configDir, Constants.PluginName), "Error writing to log file", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                    await semaphore.WaitAsync();
+
+                    if (writer == null) writer = Setup(); // we'll try to keep the file opened all the time and see how bad we end up with it
+                    if (writer == null) return;
+
+                    await writer.WriteLineAsync(String.Format("[Code::Stats {0} {1}] {2}", Enum.GetName(level.GetType(), level), DateTime.Now.ToString("HH:mm:ss"), msg));
+                    await writer.FlushAsync();
                 }
-            }
+                catch (Exception ex)
+                {
+                    if (!hasAlreadyShownErrorBox)
+                    {
+                        hasAlreadyShownErrorBox = true;
+                        MessageBox.Show(ex.ToString() + "\n\nNo further log writing errors will be shown in this session to avoid interrupting your work.", "Error writing to log file", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                        //MessageBox.Show(string.Format("{0}\\{1}.log", configDir, Constants.PluginName), "Error writing to log file", MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                    }
+                }
+                finally
+                {
+                    semaphore.Release();
+                }
+            });
         }
 
         private static StreamWriter Setup()
         {
-            //var configDir = Dependencies.AppDataDirectory;
             if (String.IsNullOrWhiteSpace(configDir))
             {
                 // get path of plugin configuration
@@ -87,7 +96,6 @@ namespace CodeStats
 
         public static void Delete()
         {
-            //var configDir = Dependencies.AppDataDirectory;
             if (String.IsNullOrWhiteSpace(configDir))
             {
                 // get path of plugin configuration
