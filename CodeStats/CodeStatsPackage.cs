@@ -95,8 +95,6 @@ namespace CodeStats
             }
             //System.Net.ServicePointManager.SecurityProtocol = (SecurityProtocolType)0; // SystemDefault, we don't use this since it's supported only since .NET 4.7
 
-            //Updater.RenameTest();
-            //Updater.SignatureVerificationTest();
             try
             {
                 // Delete existing log file to save space
@@ -130,9 +128,10 @@ namespace CodeStats
                     try
                     {
                         string latest = Constants.LatestPluginVersion();
+                        Logger.Debug("Latest version of the plugin online is: " + latest);
                         if (Constants.PluginVersion != latest && !String.IsNullOrWhiteSpace(latest))
                         {
-                            MessageBox.Show("There is Code::Stats plugin update available!\nDownload it from Plugin Admin (if already available there) or GitHub.\nYour version: " + Constants.PluginVersion + "\nLatest: " + latest, "Code::Stats");
+                            MessageBox.Show("There is Code::Stats plugin update available!\nDownload it from Plugins Admin (if already available there) or GitHub.\nYour version: " + Constants.PluginVersion + "\nLatest: " + latest, "Code::Stats");
                         }
                     }
                     catch { }
@@ -172,7 +171,6 @@ namespace CodeStats
         {
             try
             {
-                //MessageBox.Show("test1");
                 //Logger.Debug(Assembly.GetExecutingAssembly().GetManifestResourceNames().ToString());
                 //Logger.Debug(Assembly.GetExecutingAssembly().GetName().Name);
 
@@ -190,7 +188,6 @@ namespace CodeStats
                 extensionMapping = serializer.Deserialize<Dictionary<string, string>>(extensionMappingJson);
 
                 Logger.Debug("Loaded local precompiled extension mapping");
-                //MessageBox.Show("test2");
 
                 // fetch up-to-date mappings from network asynchronously
                 Task.Run(() =>
@@ -205,8 +202,8 @@ namespace CodeStats
 
                         try
                         {
-                            extensionMappingJsonNew = client.DownloadString("https://raw.githubusercontent.com/p0358/notepadpp-CodeStats/master/CodeStats/Resources/extension_mapping.json");
-                            if (!extensionMappingJsonNew.Trim().StartsWith("{") || !extensionMappingJson.Trim().EndsWith("}"))
+                            extensionMappingJsonNew = client.DownloadString("https://raw.githubusercontent.com/p0358/notepadpp-CodeStats/master/CodeStats/Resources/extension_mapping.json").Trim();
+                            if (!extensionMappingJsonNew.StartsWith("{") || !extensionMappingJson.EndsWith("}"))
                             {
                                 extensionMappingJsonNew = string.Empty;
                                 Logger.Error("Invalid response when trying to download latest extension mappings, using local ones instead");
@@ -223,7 +220,6 @@ namespace CodeStats
                         extensionMappingJson = string.Empty;
                     } // get webclient, set proxy, update extension mapping JSON
 
-                    //MessageBox.Show("test3");
                     if (!String.IsNullOrWhiteSpace(extensionMappingJsonNew) && extensionMappingJsonNew != extensionMappingJson)
                     {
                         extensionMapping = serializer2.Deserialize<Dictionary<string, string>>(extensionMappingJson);
@@ -266,8 +262,7 @@ namespace CodeStats
 
             //IntPtr pStr = Marshal.AllocHGlobal(Marshal.SizeOf(str));
             //Marshal.StructureToPtr(str, pStr, false);
-            string strr = @"" + str;
-            Win32.SendMessage(PluginBase.nppData._nppHandle, (uint)NppMsg.NPPM_SETSTATUSBAR, /*(IntPtr)NppMsg.STATUSBAR_DOC_TYPE*/0, strr);
+            Win32.SendMessage(PluginBase.nppData._nppHandle, (uint)NppMsg.NPPM_SETSTATUSBAR, (IntPtr)NppMsg.STATUSBAR_DOC_TYPE, str);
             //Marshal.FreeHGlobal(pStr);
         }
 
@@ -425,7 +420,7 @@ namespace CodeStats
 
                     if (String.IsNullOrWhiteSpace(ApiKey))
                     {
-                        Logger.Debug("No API token - cannot pulse!");
+                        Logger.Warning("No API token - cannot pulse!");
                         return;
                     }
 
@@ -483,10 +478,14 @@ namespace CodeStats
                                 response.EnsureSuccessStatusCode();
                                 string JsonResult = await response.Content.ReadAsStringAsync();
                                 _lastPulse = DateTime.Now;
-                                if (!JsonResult.Contains(@"""ok""") && !JsonResult.Contains(@"success"))
+                                if (!JsonResult.Contains(@"""ok""") || !JsonResult.Contains(@"success"))
                                 {
                                     error = true;
                                     Logger.Error(@"Error pulsing, response does not contain ""ok"" or ""success"": " + JsonResult);
+                                }
+                                else
+                                {
+                                    Logger.Debug("Pulsed, response: " + JsonResult);
                                 }
                             }
                             catch (TaskCanceledException)
@@ -544,8 +543,7 @@ namespace CodeStats
 
                         }
 
-                        if (tokenSource.Token.IsCancellationRequested)
-                            tokenSource.Token.ThrowIfCancellationRequested();
+                        tokenSource.Token.ThrowIfCancellationRequested();
                     }
                 }
             }, tokenSource.Token);
@@ -704,7 +702,7 @@ namespace CodeStats
 
         public static bool EnoughTimePassed(DateTime now)
         {
-            return (_lastActivity < now.AddMilliseconds(-1 * pulseFrequency)) && (_lastPulse < now.AddMilliseconds(-1 * pulseFrequency));
+            return _lastActivity < now.AddMilliseconds(-1 * pulseFrequency) && _lastPulse < now.AddMilliseconds(-1 * pulseFrequency);
         }
 
         private static void SettingsFormOnConfigSaved(object sender, EventArgs eventArgs)
@@ -742,18 +740,21 @@ namespace CodeStats
 
         public static void ReportStats()
         {
-            try
+            Task.Run(() =>
             {
-                var client = new WebClient { Proxy = CodeStatsPackage.GetProxy() };
-                client.Headers[HttpRequestHeader.UserAgent] = Constants.PluginUserAgent;
-                string HtmlResult = client.DownloadString("https://p0358.net/codestats/report.php?pluginver=" + Constants.PluginVersion
-                    + "&cid=" + CodeStatsPackage.Guid + "&editorname=" + Constants.EditorName + "&editorver=" + Constants.EditorVersion
-                    + "&is64process=" + ProcessorArchitectureHelper.Is64BitProcess.ToString().ToLowerInvariant() + "&is64sys=" + ProcessorArchitectureHelper.Is64BitOperatingSystem.ToString().ToLowerInvariant()
-                    + "&osverstr" + Constants.OSVersionString + "&osbuild" + Constants.OSVersionBuild
-                ); // expected response: ok
-                if (HtmlResult.Contains("ok")) _reportedStats = true;
-            }
-            finally { }
+                try
+                {
+                    var client = new WebClient { Proxy = CodeStatsPackage.GetProxy() };
+                    client.Headers[HttpRequestHeader.UserAgent] = Constants.PluginUserAgent;
+                    string result = client.DownloadString("https://p0358.net/codestats/report.php?pluginver=" + Constants.PluginVersion
+                        + "&cid=" + CodeStatsPackage.Guid + "&editorname=" + Constants.EditorName + "&editorver=" + Constants.EditorVersion
+                        + "&is64process=" + ProcessorArchitectureHelper.Is64BitProcess.ToString().ToLowerInvariant() + "&is64sys=" + ProcessorArchitectureHelper.Is64BitOperatingSystem.ToString().ToLowerInvariant()
+                        + "&osverstr=" + Constants.OSVersionString + "&osbuild=" + Constants.OSVersionBuild
+                    ); // expected response: ok
+                    if (result.Contains("ok")) _reportedStats = true;
+                }
+                finally { }
+            });
         }
 
         private static string ToUnixEpoch(DateTime date)

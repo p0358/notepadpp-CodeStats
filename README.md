@@ -9,15 +9,15 @@ Code::Stats - Write code, level up, show off! A free stats tracking service for 
 Installation
 ------------
 
-1. Inside Notepad++ open the Plugin Manager (`Plugins` → `Plugin Manager` → `Show Plugin Manager`).
+1. Inside Notepad++ open the Plugins Admin (`Plugins` → `Plugins Admin...`).
 
 2. Check the box next to `Code::Stats` in the list of plugins.
 
 3. Click the `Install` button.
 
-4. Restart Notepad++.
+4. Confirm the restart of Notepad++.
 
-3. Enter your [API token](https://codestats.net/my/machines), then press `enter`.
+3. Enter your [API token](https://codestats.net/my/machines) in the window that pops up, then press `OK`.
 
 4. Use Notepad++ like you normally do and your amount of programming will be tracked for you automatically.
 
@@ -27,11 +27,11 @@ OR
 
 1. Go to [releases](https://github.com/p0358/notepadpp-CodeStats/releases) and download zip file for correct architecture.
 
-2. Put it in Notepad++ plugin dir, for example (for x86): `C:\Program Files (x86)\Notepad++\plugins`.
+2. Put it in Notepad++ plugin dir, for example (for x86): `C:\Program Files (x86)\Notepad++\plugins`, or (for x64): `C:\Program Files\Notepad++\plugins`.
 
 3. Start/restart Notepad++.
 
-4. Enter your [API token](https://codestats.net/my/machines), then press `enter`.
+4. Enter your [API token](https://codestats.net/my/machines) in the window that pops up, then press `OK`.
 
 5. Use Notepad++ like you normally do and your amount of programming will be tracked for you automatically.
 

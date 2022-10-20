@@ -231,3 +231,4 @@ $RECYCLE.BIN/
 *.lnk
 /.vs/CodeStats/v15/Server/sqlite3
 /.vs/CodeStats/v16/Server/sqlite3
+/.vs/slnx.sqlite
