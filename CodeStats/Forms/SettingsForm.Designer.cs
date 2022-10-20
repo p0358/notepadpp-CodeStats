@@ -243,6 +243,7 @@
             this.btnOpenCustomMappingFile.TabIndex = 4;
             this.btnOpenCustomMappingFile.Text = "Open";
             this.btnOpenCustomMappingFile.UseVisualStyleBackColor = true;
+            this.btnOpenCustomMappingFile.Click += new System.EventHandler(this.btnOpenCustomMappingFile_Click);
             // 
             // labelDetectionOrder
             // 

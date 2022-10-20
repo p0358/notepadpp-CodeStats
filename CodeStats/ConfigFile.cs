@@ -172,5 +172,14 @@ namespace CodeStats
 
             return Path.Combine(iniFilePath, "CodeStats.ini");
         }
+        
+        public static string GetCustomExtensionMappingFilePath()
+        {
+            StringBuilder sbConfigFilePath = new StringBuilder(Win32.MAX_PATH);
+            Win32.SendMessage(PluginBase.nppData._nppHandle, (uint)NppMsg.NPPM_GETPLUGINSCONFIGDIR, Win32.MAX_PATH, sbConfigFilePath);
+            string configFilePath = sbConfigFilePath.ToString();
+
+            return Path.Combine(configFilePath, "CodeStatsCustomExtensionMapping.json");
+        }
     }
 }

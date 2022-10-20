@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Windows.Forms;
 using static CodeStats.Constants;
 
@@ -37,7 +38,7 @@ namespace CodeStats.Forms
                 }
 
                 chkUseExtensionMapping.Checked = _CodeStatsConfigFile.UseExtensionMapping;
-                chkUseExtensionMapping.Checked = _CodeStatsConfigFile.UseLexerLanguage;
+                chkUseLexerLanguage.Checked = _CodeStatsConfigFile.UseLexerLanguage;
                 radioDetectionPriority_extensionMapping.Checked = _CodeStatsConfigFile.DetectionPriority == Constants.DetectionType.EXTENSION_MAPPING;
                 radioDetectionPriority_lexerLanguage.Checked = _CodeStatsConfigFile.DetectionPriority == Constants.DetectionType.LEXER_LANGUAGE;
                 chkUseCustomMapping.Checked = _CodeStatsConfigFile.UseCustomMapping;
@@ -102,7 +103,7 @@ namespace CodeStats.Forms
 
                     LanguageDetectionUIRefresh();
                     _CodeStatsConfigFile.UseExtensionMapping = chkUseExtensionMapping.Checked;
-                    _CodeStatsConfigFile.UseLexerLanguage = chkUseExtensionMapping.Checked;
+                    _CodeStatsConfigFile.UseLexerLanguage = chkUseLexerLanguage.Checked;
                     _CodeStatsConfigFile.DetectionPriority = !radioDetectionPriority_extensionMapping.Checked ? Constants.DetectionType.LEXER_LANGUAGE : Constants.DetectionType.EXTENSION_MAPPING;
                     _CodeStatsConfigFile.UseCustomMapping = chkUseCustomMapping.Checked;
                     _CodeStatsConfigFile.RefreshDetectionOrder();
@@ -218,6 +219,12 @@ namespace CodeStats.Forms
         private void LanguageDetectionUIRefresh(object sender, EventArgs e)
         {
             LanguageDetectionUIRefresh();
+        }
+
+        private void btnOpenCustomMappingFile_Click(object sender, EventArgs e)
+        {
+            string path = ConfigFile.GetCustomExtensionMappingFilePath();
+            Process.Start("notepad.exe", path);
         }
     }
 }

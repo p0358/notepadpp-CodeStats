@@ -108,8 +108,6 @@ namespace CodeStats
             {
                 currentPulse = new Pulse();
 
-                Logger.Info("Initialing settings form...");
-
                 // Load config file
                 _CodeStatsConfigFile = new ConfigFile();
                 GetSettings(true);
@@ -117,6 +115,7 @@ namespace CodeStats
                 Logger.Debug("Loaded config");
 
                 LoadExtensionMapping();
+                LoadCustomExtensionMapping();
 
                 // Check for updates
                 Task.Run(() =>
@@ -239,6 +238,37 @@ namespace CodeStats
             catch (Exception ex)
             {
                 Logger.Error("Error loading extension mappings!", ex);
+            }
+        }
+
+        private static void LoadCustomExtensionMapping()
+        {
+            try
+            {
+                // get path of plugin configuration
+                StringBuilder sbConfigFilePath = new StringBuilder(Win32.MAX_PATH);
+                Win32.SendMessage(PluginBase.nppData._nppHandle, (uint)NppMsg.NPPM_GETPLUGINSCONFIGDIR, Win32.MAX_PATH, sbConfigFilePath);
+                string configFilePath = sbConfigFilePath.ToString();
+
+                string customExtensionMappingFilePath = ConfigFile.GetCustomExtensionMappingFilePath();
+
+                StreamReader _textStreamReader;
+                string customExtensionMappingJson;
+                var serializer = new JavaScriptSerializer();
+
+                _textStreamReader = File.OpenText(customExtensionMappingFilePath);
+                customExtensionMappingJson = _textStreamReader.ReadToEnd();
+                customExtensionMapping = serializer.Deserialize<Dictionary<string, string>>(customExtensionMappingJson);
+
+                Logger.Debug("Loaded custom extension mapping");
+            }
+            catch (FileNotFoundException)
+            {
+                Logger.Debug("Custom extension mapping JSON file does not exist");
+            }
+            catch (Exception ex)
+            {
+                Logger.Error("Error loading custom extension mappings!", ex);
             }
         }
 
@@ -601,6 +631,22 @@ namespace CodeStats
             {
                 switch (detectionMethod)
                 {
+                    case Constants.DetectionType.CUSTOM_MAPPING:
+                        if (!String.IsNullOrWhiteSpace(extension))
+                        {
+                            try
+                            {
+                                language = customExtensionMapping[extension];
+                                found = true;
+                            }
+                            catch (KeyNotFoundException)
+                            {
+                                Logger.Debug("Extension \"" + extension + "\" is not found in custom extension mappings file.");
+                                found = false;
+                            }
+                        }
+                        break;
+                    
                     case Constants.DetectionType.EXTENSION_MAPPING:
                         if (!String.IsNullOrWhiteSpace(extension))
                         {
@@ -754,6 +800,7 @@ namespace CodeStats
         private static void SettingsFormOnConfigSaved(object sender, EventArgs eventArgs)
         {
             GetSettings();
+            LoadCustomExtensionMapping();
             _settingsForm.OnConfigSaved -= SettingsFormOnConfigSaved;
             _settingsForm.Dispose();
             _settingsForm = null;
