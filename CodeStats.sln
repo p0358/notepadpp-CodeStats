@@ -5,8 +5,6 @@ VisualStudioVersion = 15.0.28307.421
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeStats", "CodeStats\CodeStats.csproj", "{E56F6E12-089C-40ED-BCFD-923E5FA121A1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeStatsUpdater", "CodeStatsUpdater\CodeStatsUpdater.csproj", "{A2A45792-7E19-4C34-9F30-7E7F9F007924}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x86 = Debug|x86
@@ -23,14 +21,6 @@ Global
 		{E56F6E12-089C-40ED-BCFD-923E5FA121A1}.Release|x86.Build.0 = Release|x86
 		{E56F6E12-089C-40ED-BCFD-923E5FA121A1}.Release|x64.ActiveCfg = Release|x64
 		{E56F6E12-089C-40ED-BCFD-923E5FA121A1}.Release|x64.Build.0 = Release|x64
-		{A2A45792-7E19-4C34-9F30-7E7F9F007924}.Debug|x86.ActiveCfg = Debug|x86
-		{A2A45792-7E19-4C34-9F30-7E7F9F007924}.Debug|x86.Build.0 = Debug|x86
-		{A2A45792-7E19-4C34-9F30-7E7F9F007924}.Debug|x64.ActiveCfg = Debug|x86
-		{A2A45792-7E19-4C34-9F30-7E7F9F007924}.Debug|x64.Build.0 = Debug|x86
-		{A2A45792-7E19-4C34-9F30-7E7F9F007924}.Release|x86.ActiveCfg = Release|x86
-		{A2A45792-7E19-4C34-9F30-7E7F9F007924}.Release|x86.Build.0 = Release|x86
-		{A2A45792-7E19-4C34-9F30-7E7F9F007924}.Release|x64.ActiveCfg = Release|x86
-		{A2A45792-7E19-4C34-9F30-7E7F9F007924}.Release|x64.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
