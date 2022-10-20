@@ -594,101 +594,122 @@ namespace CodeStats
             extension = Path.GetExtension(currentFile).TrimStart('.');
 
             bool found = false;
+            var foundDetectionMethod = Constants.DetectionType.EXTENSION_MAPPING;
             string language = "";
-            if (!String.IsNullOrWhiteSpace(extension))
+
+            foreach (var detectionMethod in DetectionOrder)
             {
-                /*if (extensionMapping.TryGetValue(extension, out language))
+                switch (detectionMethod)
                 {
-                    // Found
-                    found = true;
+                    case Constants.DetectionType.EXTENSION_MAPPING:
+                        if (!String.IsNullOrWhiteSpace(extension))
+                        {
+                            /*if (extensionMapping.TryGetValue(extension, out language))
+                            {
+                                // Found
+                                found = true;
+                            }
+                            else
+                            {
+                                // Not found
+                                found = false;
+                            }*/// - doesn't work for some reason
+                            try
+                            {
+                                language = extensionMapping[extension];
+                                found = true;
+                            }
+                            catch (KeyNotFoundException)
+                            {
+                                Logger.Debug("Extension \"" + extension + "\" is not found in extension mappings file.");
+                                found = false;
+                            }
+                        }
+                        break;
+
+                    case Constants.DetectionType.LEXER_LANGUAGE:
+                        found = true; // will set again to false if not
+                        switch (langType)
+                        {
+                            case LangType.L_ADA: language = "Ada"; break;
+                            //case LangType.L_ASCII: language = "ASCII"; break; // maybe Plain text?
+                            case LangType.L_ASM: language = "Assembler"; break;
+                            case LangType.L_ASP: language = "ASP"; break;
+                            case LangType.L_AU3: language = "AutoIt"; break;
+                            case LangType.L_BASH: language = "Shell Script"; break; // or Shell Script, probably called Shell in NPP (long desc: Unix script file)
+                            case LangType.L_BATCH: language = "Batch"; break;
+                            case LangType.L_C: language = "C"; break;
+                            case LangType.L_CAML: language = "Caml"; break;
+                            case LangType.L_CMAKE: language = "CMake"; break;
+                            case LangType.L_COBOL: language = "COBOL"; break;
+                            case LangType.L_COFFEESCRIPT: language = "CoffeeScript"; break;
+                            case LangType.L_CPP: language = "C++"; break;
+                            case LangType.L_CS: language = "C#"; break;
+                            case LangType.L_CSS: language = "CSS"; break;
+                            case LangType.L_D: language = "D"; break;
+                            case LangType.L_DIFF: language = "Diff"; break;
+                            //case LangType.L_EXTERNAL: language = ""; break;
+                            case LangType.L_FLASH: language = "Flash"; break;
+                            case LangType.L_FORTRAN: language = "Fortran"; break; // fixed?
+                            case LangType.L_FORTRAN_77: language = "Fortran"; break; // free?
+                            case LangType.L_GUI4CLI: language = "Gui4Cli"; break;
+                            case LangType.L_HASKELL: language = "Haskell"; break;
+                            case LangType.L_HTML: language = "HTML"; break;
+                            case LangType.L_INI: language = "Ini"; break;
+                            case LangType.L_INNO: language = "INNO"; break;
+                            case LangType.L_JAVA: language = "Java"; break;
+                            case LangType.L_JAVASCRIPT: language = "JavaScript"; break;
+                            case LangType.L_JS: language = "JavaScript"; break;
+                            case LangType.L_JSON: language = "JSON"; break;
+                            case LangType.L_JSP: language = "JSP"; break;
+                            case LangType.L_KIX: language = "KIXtart"; break;
+                            case LangType.L_LISP: language = "LISP"; break;
+                            case LangType.L_LUA: language = "Lua"; break;
+                            case LangType.L_MAKEFILE: language = "Makefile"; break;
+                            case LangType.L_MATLAB: language = "Matlab"; break;
+                            case LangType.L_NSIS: language = "NSIS"; break;
+                            case LangType.L_OBJC: language = "Objective-C"; break;
+                            case LangType.L_PASCAL: language = "Pascal"; break;
+                            case LangType.L_PERL: language = "Perl"; break;
+                            case LangType.L_PHP: language = "PHP"; break;
+                            case LangType.L_POWERSHELL: language = "PowerShell"; break;
+                            case LangType.L_PROPS: language = "Properties"; break;
+                            case LangType.L_PS: language = "PostScript"; break;
+                            case LangType.L_PYTHON: language = "Python"; break;
+                            case LangType.L_R: language = "R"; break;
+                            case LangType.L_RC: language = "Resource"; break;
+                            case LangType.L_RUBY: language = "Ruby"; break;
+                            case LangType.L_SCHEME: language = "Scheme"; break;
+                            //case LangType.L_SEARCHRESULT: language = ""; break; // it should be fine as plaintext
+                            case LangType.L_SMALLTALK: language = "Smalltalk"; break;
+                            case LangType.L_SQL: language = "SQL"; break;
+                            case LangType.L_TCL: language = "TCL"; break;
+                            case LangType.L_TEX: language = "TeX"; break;
+                            case LangType.L_VB: language = "Visual Basic"; break;
+                            case LangType.L_VERILOG: language = "Verilog"; break;
+                            case LangType.L_VHDL: language = "VHDL"; break;
+                            case LangType.L_XML: language = "XML"; break;
+                            case LangType.L_YAML: language = "YAML"; break;
+                            case LangType.L_TEXT:
+                            case LangType.L_USER: // User defined language
+                            default:
+                                found = false;
+                                break;
+                        }
+                        break;
                 }
-                else
+                if (found)
                 {
-                    // Not found
-                    found = false;
-                }*/// - doesn't work for some reason
-                try
-                {
-                    language = extensionMapping[extension];
-                    found = true;
-                }
-                catch (KeyNotFoundException)
-                {
-                    Logger.Debug("Extension \"" + extension + "\" is not found in extension mappings file, using language type selected in Notepad++ instead.");
-                    found = false;
+                    foundDetectionMethod = detectionMethod;
+                    break;
                 }
             }
 
+            if (found && Debug)
+                Logger.Debug("[GetCurrentLanguage] Detected language \"" + language + "\" with detection type: " + foundDetectionMethod);
+
             if (!found)
-            {
-                switch (langType)
-                {
-                    case LangType.L_ADA: language = "Ada"; break;
-                    //case LangType.L_ASCII: language = "ASCII"; break; // maybe Plain text?
-                    case LangType.L_ASM: language = "Assembler"; break;
-                    case LangType.L_ASP: language = "ASP"; break;
-                    case LangType.L_AU3: language = "AutoIt"; break;
-                    case LangType.L_BASH: language = "Shell Script"; break; // or Shell Script, probably called Shell in NPP (long desc: Unix script file)
-                    case LangType.L_BATCH: language = "Batch"; break;
-                    case LangType.L_C: language = "C"; break;
-                    case LangType.L_CAML: language = "Caml"; break;
-                    case LangType.L_CMAKE: language = "CMake"; break;
-                    case LangType.L_COBOL: language = "COBOL"; break;
-                    case LangType.L_COFFEESCRIPT: language = "CoffeeScript"; break;
-                    case LangType.L_CPP: language = "C++"; break;
-                    case LangType.L_CS: language = "C#"; break;
-                    case LangType.L_CSS: language = "CSS"; break;
-                    case LangType.L_D: language = "D"; break;
-                    case LangType.L_DIFF: language = "Diff"; break;
-                    //case LangType.L_EXTERNAL: language = ""; break;
-                    case LangType.L_FLASH: language = "Flash"; break;
-                    case LangType.L_FORTRAN: language = "Fortran"; break; // fixed?
-                    case LangType.L_FORTRAN_77: language = "Fortran"; break; // free?
-                    case LangType.L_GUI4CLI: language = "Gui4Cli"; break;
-                    case LangType.L_HASKELL: language = "Haskell"; break;
-                    case LangType.L_HTML: language = "HTML"; break;
-                    case LangType.L_INI: language = "Ini"; break;
-                    case LangType.L_INNO: language = "INNO"; break;
-                    case LangType.L_JAVA: language = "Java"; break;
-                    case LangType.L_JAVASCRIPT: language = "JavaScript"; break;
-                    case LangType.L_JS: language = "JavaScript"; break;
-                    case LangType.L_JSON: language = "JSON"; break;
-                    case LangType.L_JSP: language = "JSP"; break;
-                    case LangType.L_KIX: language = "KIXtart"; break;
-                    case LangType.L_LISP: language = "LISP"; break;
-                    case LangType.L_LUA: language = "Lua"; break;
-                    case LangType.L_MAKEFILE: language = "Makefile"; break;
-                    case LangType.L_MATLAB: language = "Matlab"; break;
-                    case LangType.L_NSIS: language = "NSIS"; break;
-                    case LangType.L_OBJC: language = "Objective-C"; break;
-                    case LangType.L_PASCAL: language = "Pascal"; break;
-                    case LangType.L_PERL: language = "Perl"; break;
-                    case LangType.L_PHP: language = "PHP"; break;
-                    case LangType.L_POWERSHELL: language = "PowerShell"; break;
-                    case LangType.L_PROPS: language = "Properties"; break;
-                    case LangType.L_PS: language = "PostScript"; break;
-                    case LangType.L_PYTHON: language = "Python"; break;
-                    case LangType.L_R: language = "R"; break;
-                    case LangType.L_RC: language = "Resource"; break;
-                    case LangType.L_RUBY: language = "Ruby"; break;
-                    case LangType.L_SCHEME: language = "Scheme"; break;
-                    //case LangType.L_SEARCHRESULT: language = ""; break; // it should be fine as plaintext
-                    case LangType.L_SMALLTALK: language = "Smalltalk"; break;
-                    case LangType.L_SQL: language = "SQL"; break;
-                    case LangType.L_TCL: language = "TCL"; break;
-                    case LangType.L_TEX: language = "TeX"; break;
-                    case LangType.L_VB: language = "Visual Basic"; break;
-                    case LangType.L_VERILOG: language = "Verilog"; break;
-                    case LangType.L_VHDL: language = "VHDL"; break;
-                    case LangType.L_XML: language = "XML"; break;
-                    case LangType.L_YAML: language = "YAML"; break;
-                    case LangType.L_TEXT:
-                    case LangType.L_USER: // User defined language
-                    default:
-                        language = "Plain text";
-                        break;
-                }
-            }
+                language = "Plain text";
 
             return language;
         }
