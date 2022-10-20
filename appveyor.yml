@@ -25,10 +25,12 @@ after_build:
             Push-AppveyorArtifact "CodeStats\bin\$env:PLATFORM\$env:CONFIGURATION\CodeStats.dll" -FileName CodeStats_$($env:PLATFORM).dll
         }
 
-        $ZipFileName = "notepadpp-CodeStats_$($env:APPVEYOR_REPO_TAG_NAME)_$($env:PLATFORM)_$($env:CONFIGURATION).zip"
-        Remove-Item CodeStats\bin\$env:PLATFORM\$env:CONFIGURATION\*.exp
-        Remove-Item CodeStats\bin\$env:PLATFORM\$env:CONFIGURATION\*.lib
-        7z a $ZipFileName CodeStats\bin\$env:PLATFORM\$env:CONFIGURATION\*
+        if ($($env:APPVEYOR_REPO_TAG) -eq "true") {
+            $ZipFileName = "notepadpp-CodeStats_$($env:APPVEYOR_REPO_TAG_NAME)_$($env:PLATFORM)_$($env:CONFIGURATION).zip"
+            Remove-Item CodeStats\bin\$env:PLATFORM\$env:CONFIGURATION\*.exp
+            Remove-Item CodeStats\bin\$env:PLATFORM\$env:CONFIGURATION\*.lib
+            7z a $ZipFileName CodeStats\bin\$env:PLATFORM\$env:CONFIGURATION\*
+        }
 
 artifacts:
   - path: notepadpp-CodeStats_*.zip
