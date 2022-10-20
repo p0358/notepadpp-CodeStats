@@ -763,7 +763,7 @@ namespace CodeStats
             if (found && Debug)
                 Logger.Debug("[GetCurrentLanguage] Detected language \"" + language + "\" with detection type: " + foundDetectionMethod);
 
-            if (!found)
+            if (!found || String.IsNullOrWhiteSpace(language))
                 language = "Plain text";
 
             return language;
