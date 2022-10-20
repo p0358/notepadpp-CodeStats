@@ -25,9 +25,9 @@ Installation
 
 OR
 
-1. Go to [releases](https://github.com/p0358/notepadpp-CodeStats/releases) and download zip file for correct architecture.
+1. Go to [releases](https://github.com/p0358/notepadpp-CodeStats/releases) and download zip file for correct architecture of your Notepad++ installation.
 
-2. Put it in Notepad++ plugin dir, for example (for x86): `C:\Program Files (x86)\Notepad++\plugins`, or (for x64): `C:\Program Files\Notepad++\plugins`.
+2. Put it in Notepad++ plugin dir, inside of `CodeStats` folder, for example (for x86): `C:\Program Files (x86)\Notepad++\plugins\CodeStats`, or (for x64): `C:\Program Files\Notepad++\plugins\CodeStats`.
 
 3. Start/restart Notepad++.
 
