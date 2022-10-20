@@ -8,7 +8,7 @@ namespace CodeStats.Forms
     public partial class SettingsForm : Form
     {
         private readonly ConfigFile _CodeStatsConfigFile;
-        internal event EventHandler ConfigSaved;
+        internal event EventHandler OnConfigSaved;
         private ToolTip apiurlToolTip;
 
         public SettingsForm()
@@ -35,6 +35,7 @@ namespace CodeStats.Forms
                 {
                     txtAPIURL.Text = _CodeStatsConfigFile.ApiUrl;
                 }
+                LanguageDetectionUIRefresh();
             }
             catch (Exception ex)
             {
@@ -101,16 +102,13 @@ namespace CodeStats.Forms
 
                     _CodeStatsConfigFile.Save();
 
-                    OnConfigSaved();
-                    //CodeStatsPackage.GetSettings(); // reload settings in main class
-
                     CodeStatsPackage._hasAlreadyShownInvalidApiTokenMessage = false;
-
                     if (chkStats.Checked && !CodeStatsPackage._reportedStats)
                     {
                         CodeStatsPackage.ReportStats();
                     }
 
+                    NotifyOnConfigSaved(); // it destroys the settings form in the handler
                 /*}
                 else // - kept in case we check API tokens in future
                 {
@@ -125,9 +123,9 @@ namespace CodeStats.Forms
             }
         }
 
-        protected virtual void OnConfigSaved()
+        protected virtual void NotifyOnConfigSaved()
         {
-            var handler = ConfigSaved;
+            var handler = OnConfigSaved;
             if (handler != null) handler(this, EventArgs.Empty);
         }
 

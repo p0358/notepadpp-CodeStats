@@ -109,10 +109,6 @@ namespace CodeStats
                 currentPulse = new Pulse();
 
                 Logger.Info("Initialing settings form...");
-                // Settings Form
-                _settingsForm = new CodeStats.Forms.SettingsForm();
-                _settingsForm.ConfigSaved += SettingsFormOnConfigSaved;
-                Logger.Info("Initialized settings form"); // it takes 5 seconds to get here from Initializing Code::Stats message...
 
                 // Load config file
                 _CodeStatsConfigFile = new ConfigFile();
@@ -515,9 +511,8 @@ namespace CodeStats
                                         Logger.Error("Could not pulse (error 404). The entered custom endpoint (" + URL + ") is invalid. ", ex);
                                         MessageBox.Show("Could not pulse. Invalid API endpoint URL. Please make sure you entered a valid API URL in Code::Stats settings or delete the value altogether to restore the default.\nAll recorded XP from this session will be lost if you do not provide the correct API URL path!", "Code::Stats – error 404", MessageBoxButtons.OK, MessageBoxIcon.Error);
 
-                                        _settingsForm.FocusTxtAPIURL();
-                                        _settingsForm.ShowAPIURLTooltip();
                                         SettingsPopup();
+                                        _settingsForm.FocusTxtAPIURL();
                                         _settingsForm.ShowAPIURLTooltip();
                                     }
                                     else
@@ -707,11 +702,6 @@ namespace CodeStats
             return _lastActivity < now.AddMilliseconds(-1 * pulseFrequency) && _lastPulse < now.AddMilliseconds(-1 * pulseFrequency);
         }
 
-        private static void SettingsFormOnConfigSaved(object sender, EventArgs eventArgs)
-        {
-            GetSettings();
-        }
-
         public static void GetSettings(bool skipRead = false)
         {
             if (!skipRead) _CodeStatsConfigFile.Read();
@@ -736,8 +726,21 @@ namespace CodeStats
 
         private static void SettingsPopup()
         {
-            _settingsForm.Visible = false;
+            if (_settingsForm == null)
+            {
+                _settingsForm = new CodeStats.Forms.SettingsForm();
+                _settingsForm.OnConfigSaved += SettingsFormOnConfigSaved;
+            }
+            //_settingsForm.Visible = false; // ?
             _settingsForm.ShowDialog();
+        }
+
+        private static void SettingsFormOnConfigSaved(object sender, EventArgs eventArgs)
+        {
+            GetSettings();
+            _settingsForm.OnConfigSaved -= SettingsFormOnConfigSaved;
+            _settingsForm.Dispose();
+            _settingsForm = null;
         }
 
         public static void ReportStats()
