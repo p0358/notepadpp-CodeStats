@@ -35,6 +35,12 @@ namespace CodeStats.Forms
                 {
                     txtAPIURL.Text = _CodeStatsConfigFile.ApiUrl;
                 }
+
+                chkUseExtensionMapping.Checked = _CodeStatsConfigFile.UseExtensionMapping;
+                chkUseExtensionMapping.Checked = _CodeStatsConfigFile.UseLexerLanguage;
+                radioDetectionPriority_extensionMapping.Checked = _CodeStatsConfigFile.DetectionPriority == Constants.DetectionType.EXTENSION_MAPPING;
+                radioDetectionPriority_lexerLanguage.Checked = _CodeStatsConfigFile.DetectionPriority == Constants.DetectionType.LEXER_LANGUAGE;
+                chkUseCustomMapping.Checked = _CodeStatsConfigFile.UseCustomMapping;
                 LanguageDetectionUIRefresh();
             }
             catch (Exception ex)
@@ -99,6 +105,7 @@ namespace CodeStats.Forms
                     _CodeStatsConfigFile.UseLexerLanguage = chkUseExtensionMapping.Checked;
                     _CodeStatsConfigFile.DetectionPriority = !radioDetectionPriority_extensionMapping.Checked ? Constants.DetectionType.LEXER_LANGUAGE : Constants.DetectionType.EXTENSION_MAPPING;
                     _CodeStatsConfigFile.UseCustomMapping = chkUseCustomMapping.Checked;
+                    _CodeStatsConfigFile.RefreshDetectionOrder();
 
                     _CodeStatsConfigFile.Save();
 
@@ -166,8 +173,10 @@ namespace CodeStats.Forms
                 if ((!radioDetectionPriority_extensionMapping.Checked && !radioDetectionPriority_lexerLanguage.Checked)
                     || (radioDetectionPriority_extensionMapping.Checked && radioDetectionPriority_lexerLanguage.Checked))
                 {
-                    radioDetectionPriority_extensionMapping.Checked = true;
-                    radioDetectionPriority_lexerLanguage.Checked = false;
+                    //radioDetectionPriority_extensionMapping.Checked = true;
+                    //radioDetectionPriority_lexerLanguage.Checked = false;
+                    radioDetectionPriority_extensionMapping.Checked = _CodeStatsConfigFile.DetectionPriority == Constants.DetectionType.EXTENSION_MAPPING;
+                    radioDetectionPriority_lexerLanguage.Checked = _CodeStatsConfigFile.DetectionPriority == Constants.DetectionType.LEXER_LANGUAGE;
                 }
 
                 if (radioDetectionPriority_extensionMapping.Checked)
@@ -185,6 +194,8 @@ namespace CodeStats.Forms
             {
                 radioDetectionPriority_extensionMapping.Enabled = false;
                 radioDetectionPriority_lexerLanguage.Enabled = false;
+                radioDetectionPriority_extensionMapping.Checked = false;
+                radioDetectionPriority_lexerLanguage.Checked = false;
 
                 if (chkUseExtensionMapping.Checked)
                 {
@@ -197,6 +208,8 @@ namespace CodeStats.Forms
             }
 
             detectionOrder += string.Join(", ", things);
+            if (things.Count == 0)
+                detectionOrder += "<always treat files as plain text>";
             labelDetectionOrder.Text = detectionOrder;
 
             return things;

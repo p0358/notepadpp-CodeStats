@@ -255,7 +255,6 @@ namespace CodeStats
 
         internal static void SetStatusBarDocType(string str)
         {
-
             //IntPtr pStr = Marshal.AllocHGlobal(Marshal.SizeOf(str));
             //Marshal.StructureToPtr(str, pStr, false);
             Win32.SendMessage(PluginBase.nppData._nppHandle, (uint)NppMsg.NPPM_SETSTATUSBAR, (IntPtr)NppMsg.STATUSBAR_DOC_TYPE, str);
@@ -308,7 +307,7 @@ namespace CodeStats
 
             if (notification.Header.Code == (uint)SciMsg.SCN_CHARADDED) // our best bet
             {
-                Logger.Debug("[notification] SCN_CHARADDED");
+                if (Debug) Logger.Debug("[notification] SCN_CHARADDED");
                 HandleActicity();
                 if (Debug) Logger.Debug("SCN_CHARADDED - File: " + GetCurrentFile() + ", char: " + (char)notification.character + " (" + notification.character + "), lang: " + GetCurrentLanguage());
             }
@@ -343,7 +342,9 @@ namespace CodeStats
             string newStatusBarDocTypeText = @"✎C::S " + currentCount.ToString() + append;
             if (_lastStatusBarDocTypeText != newStatusBarDocTypeText) // Let's not call it when it's not needed (nothing changed), we will earn some performance hopefully
             {
+                if (Debug) Logger.Debug("Setting new statusbar text to: " + newStatusBarDocTypeText);
                 SetStatusBarDocType(newStatusBarDocTypeText);
+                if (Debug) Logger.Debug("New statusbar text was set.");
             }
             _lastStatusBarDocTypeText = newStatusBarDocTypeText;
         }
@@ -365,6 +366,16 @@ namespace CodeStats
             _lastActivity = DateTime.Now;
         }
 
+        private static void FlushCurrentPulseIfNeeded()
+        {
+            if (pulseQueue != null && currentPulse != null && !currentPulse.isEmpty())
+            {
+                pulseQueue.Enqueue(currentPulse);
+                currentPulse = new Pulse();
+                currentCount = 0;
+            }
+        }
+
         private static void ProcessPulses(object sender, ElapsedEventArgs e)
         {
             Task.Run(() =>
@@ -373,19 +384,15 @@ namespace CodeStats
                 {
                     if (pulseQueue != null && ((currentPulse != null && !currentPulse.isEmpty()) || !pulseQueue.IsEmpty) && EnoughTimePassed(DateTime.Now))
                     {
-                        if (currentPulse != null && !currentPulse.isEmpty())
-                        {
-                            pulseQueue.Enqueue(currentPulse);
-                            currentPulse = new Pulse();
-                            currentCount = 0;
-                        }
+                        // if current pulse is not empty, add it to the queue now
+                        FlushCurrentPulseIfNeeded();
 
                         // run only if the task didn't run yet, or the previous one already finished
                         if (pulseProcessor == null || pulseProcessor.IsCompleted || pulseProcessor.IsFaulted) // don't start if it's cancelled
                         {
                             try
                             {
-                                pulseProcessor = ProcessPulses(pulseProcessor_tokensource);
+                                pulseProcessor = ProcessPendingPulses(pulseProcessor_tokensource);
                             }
                             catch (OperationCanceledException) { }
                         }
@@ -401,19 +408,12 @@ namespace CodeStats
             });
         }
 
-        private static Task ProcessPulses(CancellationTokenSource tokenSource)
+        private static Task ProcessPendingPulses(CancellationTokenSource tokenSource)
         {
             return Task.Run(async () =>
             {
                 if (pulseQueue != null && ((currentPulse != null && !currentPulse.isEmpty()) || !pulseQueue.IsEmpty) && EnoughTimePassed(DateTime.Now))
                 {
-                    if (currentPulse != null && !currentPulse.isEmpty())
-                    {
-                        pulseQueue.Enqueue(currentPulse);
-                        currentPulse = new Pulse();
-                        currentCount = 0;
-                    }
-
                     if (String.IsNullOrWhiteSpace(ApiKey))
                     {
                         Logger.Warning("No API token - cannot pulse!");
@@ -427,7 +427,6 @@ namespace CodeStats
                         pulseProcessor_client = new HttpClient(pulseProcessor_httpClientHandler);
                         proxyChangePending = false;
                     }
-                    //var client = new WebClient { Proxy = CodeStatsPackage.GetProxy() };
                     var jsonSerializer = new JavaScriptSerializer();
 
                     string URL;
@@ -443,10 +442,6 @@ namespace CodeStats
                     }
                     if (!URL.EndsWith("my/pulses"))
                         URL += "my/pulses";
-                    /*client.Headers["User-Agent"] = Constants.PluginUserAgent;
-                    client.Headers["Content-Type"] = "application/json";
-                    client.Headers["Accept"] = "* /*";
-                    client.Headers["X-API-Token"] = ApiKey;*/
 
                     Pulse result;
                     while (pulseQueue.TryDequeue(out result))
@@ -468,6 +463,7 @@ namespace CodeStats
                                         { "Accept", "*/*" },
                                         { "X-API-Token", ApiKey }
                                     },
+                                    // it will set Content-Type header for us
                                     Content = new StringContent(json = jsonSerializer.Serialize(result), Encoding.UTF8, "application/json")
                                 };
 
@@ -476,7 +472,7 @@ namespace CodeStats
                                 response.EnsureSuccessStatusCode();
                                 string JsonResult = await response.Content.ReadAsStringAsync();
                                 _lastPulse = DateTime.Now;
-                                if (!JsonResult.Contains(@"""ok""") || !JsonResult.Contains(@"success"))
+                                if (!JsonResult.Contains(@"""ok""") && !JsonResult.Contains(@"success"))
                                 {
                                     error = true;
                                     Logger.Error(@"Error pulsing, response does not contain ""ok"" or ""success"": " + JsonResult);
@@ -719,8 +715,7 @@ namespace CodeStats
         private static void PromptApiKey()
         {
             Logger.Info("Please input your API token into the Code::Stats window.");
-            /*var form*/
-            _apikeyForm = new CodeStats.Forms.ApiKeyForm();
+            /*var form*/ _apikeyForm = new CodeStats.Forms.ApiKeyForm();
             _apikeyForm.ShowDialog();
         }
 
@@ -731,7 +726,7 @@ namespace CodeStats
                 _settingsForm = new CodeStats.Forms.SettingsForm();
                 _settingsForm.OnConfigSaved += SettingsFormOnConfigSaved;
             }
-            //_settingsForm.Visible = false; // ?
+            _settingsForm.Visible = false; // ?
             _settingsForm.ShowDialog();
         }
 
@@ -854,58 +849,63 @@ namespace CodeStats
         {
             nppStarted = false;
 
-            Logger.Info("Plugin cleanup on shutdown...");
-
-            // Flush the current pulse
-            Logger.Debug("Flushing the current pulse...");
-            if (pulseQueue != null && currentPulse != null && !currentPulse.isEmpty())
-            {
-                pulseQueue.Enqueue(currentPulse);
-                currentPulse = new Pulse();
-                currentCount = 0;
-            }
-
-            Logger.Debug("Cancelling pulse processing...");
-            pulseProcessor_tokensource.Cancel();
-
-            if (timer != null)
-            {
-                Logger.Debug("Stopping timer...");
-                timer.Stop();
-                timer.Elapsed -= ProcessPulses;
-                timer.Dispose();
-                timer = null;
-
-                // make sure the queue is empty
-                //ProcessPulses();
-            }
-
-            // test if we can cancel and dump pulses
-            Logger.Debug("Waiting for pulse processor to be cancelled...");
             try
             {
-                if (pulseProcessor != null)
-                    pulseProcessor.Wait();
+                Logger.Info("Plugin cleanup on shutdown...");
+
+                // Flush the current pulse
+                Logger.Debug("Flushing the current pulse...");
+                FlushCurrentPulseIfNeeded();
+
+                Logger.Debug("Cancelling pulse processing...");
+                pulseProcessor_tokensource.Cancel();
+
+                if (timer != null)
+                {
+                    Logger.Debug("Stopping timer...");
+                    timer.Stop();
+                    timer.Elapsed -= ProcessPulses;
+                    timer.Dispose();
+                    timer = null;
+
+                    // make sure the queue is empty
+                    //ProcessPulses();
+                }
+
+                // test if we can cancel and dump pulses
+                try
+                {
+                    if (pulseProcessor != null)
+                    {
+                        Logger.Debug("Waiting for pulse processor to be cancelled...");
+                        pulseProcessor.Wait();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Logger.Error("Exception while waiting for pulse processor to be cancelled", ex);
+                }
+
+                Logger.Debug("Dequeueing remaining queued pulses...");
+                var jsonSerializer = new JavaScriptSerializer();
+                Pulse result;
+                while (pulseQueue.TryDequeue(out result))
+                {
+                    if (!result.isEmpty())
+                    {
+                        string json = jsonSerializer.Serialize(result);
+                        Logger.Debug("Unsaved pulse: " + json);
+                    }
+                }
+
+                Logger.Info("Plugin cleanup finished");
+                Logger.FlushEverything();
             }
             catch (Exception ex)
             {
-                Logger.Error("Exception while waiting for pulse processor to be cancelled", ex);
+                Logger.Error("Exception while performing plugin shutdown cleanup", ex);
+                Logger.FlushEverything();
             }
-
-            Logger.Debug("Dequeueing remaining queued pulses...");
-            var jsonSerializer = new JavaScriptSerializer();
-            Pulse result;
-            while (pulseQueue.TryDequeue(out result))
-            {
-                if (!result.isEmpty())
-                {
-                    string json = jsonSerializer.Serialize(result);
-                    Logger.Debug("Unsaved pulse: " + json);
-                }
-            }
-
-            Logger.Info("Plugin cleanup finished");
         }
-
     }
 }

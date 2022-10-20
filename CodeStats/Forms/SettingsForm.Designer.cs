@@ -210,7 +210,6 @@
             this.radioDetectionPriority_lexerLanguage.Name = "radioDetectionPriority_lexerLanguage";
             this.radioDetectionPriority_lexerLanguage.Size = new System.Drawing.Size(102, 19);
             this.radioDetectionPriority_lexerLanguage.TabIndex = 7;
-            this.radioDetectionPriority_lexerLanguage.TabStop = true;
             this.radioDetectionPriority_lexerLanguage.Text = "lexer language";
             this.radioDetectionPriority_lexerLanguage.UseVisualStyleBackColor = true;
             this.radioDetectionPriority_lexerLanguage.CheckedChanged += new System.EventHandler(this.LanguageDetectionUIRefresh);
@@ -231,7 +230,6 @@
             this.radioDetectionPriority_extensionMapping.Name = "radioDetectionPriority_extensionMapping";
             this.radioDetectionPriority_extensionMapping.Size = new System.Drawing.Size(127, 19);
             this.radioDetectionPriority_extensionMapping.TabIndex = 5;
-            this.radioDetectionPriority_extensionMapping.TabStop = true;
             this.radioDetectionPriority_extensionMapping.Text = "extension mapping";
             this.radioDetectionPriority_extensionMapping.UseVisualStyleBackColor = true;
             this.radioDetectionPriority_extensionMapping.CheckedChanged += new System.EventHandler(this.LanguageDetectionUIRefresh);
@@ -270,8 +268,6 @@
             // chkUseLexerLanguage
             // 
             this.chkUseLexerLanguage.AutoSize = true;
-            this.chkUseLexerLanguage.Checked = true;
-            this.chkUseLexerLanguage.CheckState = System.Windows.Forms.CheckState.Checked;
             this.chkUseLexerLanguage.Location = new System.Drawing.Point(8, 40);
             this.chkUseLexerLanguage.Name = "chkUseLexerLanguage";
             this.chkUseLexerLanguage.Size = new System.Drawing.Size(321, 19);
