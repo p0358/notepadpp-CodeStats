@@ -36,5 +36,5 @@ using System.Runtime.InteropServices;
 // separating this is convenient, because it allows you to update the real values here without triggering the update notification before it's ready
 // [assembly: AssemblyFileVersion("1.0.1")]
 
-[assembly: AssemblyVersion("1.1.0")]
-[assembly: AssemblyFileVersion("1.1.0")]
+[assembly: AssemblyVersion("1.1.1")]
+[assembly: AssemblyFileVersion("1.1.1")]

@@ -122,11 +122,21 @@ namespace CodeStats
                 {
                     try
                     {
-                        string latest = Constants.LatestPluginVersion();
-                        Logger.Debug("Latest version of the plugin online is: " + latest);
-                        if (Constants.PluginVersion != latest && !String.IsNullOrWhiteSpace(latest))
+                        string latestVersionString = Constants.LatestPluginVersion();
+                        Logger.Debug("Latest version of the plugin online is: " + latestVersionString);
+                        Version latest = new Version(latestVersionString);
+                        Version current = new Version(Constants.PluginVersion);
+                        if (current.CompareTo(latest) < 0 && !String.IsNullOrWhiteSpace(latestVersionString))
                         {
-                            MessageBox.Show("There is Code::Stats plugin update available!\nDownload it from Plugins Admin (if already available there) or GitHub.\nYour version: " + Constants.PluginVersion + "\nLatest: " + latest, "Code::Stats");
+                            Logger.Info("Displaying update available notice");
+                            MessageBox.Show("There is Code::Stats plugin update available!\nDownload it from Plugins Admin or GitHub. If the update is not available in Plugins Admin, you may need to update your Notepad++ version first.\nYour version: " + Constants.PluginVersion + "\nLatest: " + latestVersionString, "Code::Stats");
+                        }
+                        else if (Debug)
+                        {
+                            if (current.CompareTo(latest) == 0)
+                                Logger.Debug("Not displaying update notice, current and latest version are the same");
+                            else if (current.CompareTo(latest) > 0)
+                                Logger.Debug("Not displaying update notice, current version is newer than latest");
                         }
                     }
                     catch { }
