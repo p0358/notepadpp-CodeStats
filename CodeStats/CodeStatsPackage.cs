@@ -165,6 +165,34 @@ namespace CodeStats
                     ReportStats();
                 }
 
+                // Restore pulses previously dumped to file (if we had to shut down before being able to pulse them)
+                Task.Run(() =>
+                {
+                    try
+                    {
+                        var path = ConfigFile.GetUnsavedPulsesFilePath();
+                        if (File.Exists(path))
+                        {
+                            var json = File.ReadAllText(path);
+
+                            var serializer = new JavaScriptSerializer();
+                            var pulses = serializer.Deserialize<List<Pulse>>(json);
+                            foreach (var pulse in pulses)
+                            {
+                                Logger.Info("Restoring dumped pulse: " + serializer.Serialize(pulse));
+                                pulseQueue.Enqueue(pulse);
+                            }
+
+                            UpdateStatusbar();
+                            File.Delete(path);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Logger.Error("Error trying to restore dumped pulses from file!", ex);
+                    }
+                });
+
                 Logger.Info(string.Format("Finished initializing Code::Stats v{0}", Constants.PluginVersion));
             }
             catch (Exception ex)
@@ -976,14 +1004,23 @@ namespace CodeStats
                 Logger.Debug("Dequeueing remaining queued pulses...");
                 var jsonSerializer = new JavaScriptSerializer();
                 Pulse result;
+                var unsavedPulses = new List<Pulse>();
                 while (pulseQueue.TryDequeue(out result))
                 {
                     if (!result.isEmpty())
                     {
+                        unsavedPulses.Add(result);
                         string json = jsonSerializer.Serialize(result);
                         Logger.Info("Unsaved pulse: " + json);
-                        // TODO: dump them to file and restore
                     }
+                }
+                if (unsavedPulses.Count > 0)
+                {
+                    // dump them to file
+                    var path = ConfigFile.GetUnsavedPulsesFilePath();
+                    Logger.Info("Dumping " + unsavedPulses.Count + " unsaved pulses to file at: " + path);
+                    string json = jsonSerializer.Serialize(unsavedPulses);
+                    File.WriteAllText(path, json);
                 }
 
                 Logger.Info("Plugin cleanup on shutdown finished");

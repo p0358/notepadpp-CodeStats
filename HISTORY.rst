@@ -3,6 +3,13 @@ History
 -------
 
 
+1.1.1 (2022-11-01)
+++++++++++++++++++
+
+- Fixed version check message claiming your version is outdated if it was in fact newer (it was checking for simple equality)
+- Pulses that were not possible to be sent (for example due to connection issues) will now be dumped to disk on Notepad++ close and later restored, instead of being discarded
+
+
 1.1.0 (2022-10-20)
 ++++++++++++++++++
 

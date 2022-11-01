@@ -8,6 +8,12 @@ namespace CodeStats
         public string language { get; set; }
         public int xp { get; set; }
 
+        public XpObj()
+        {
+            language = "Plain text";
+            xp = 0;
+        }
+
         public XpObj(string lang)
         {
             language = lang;

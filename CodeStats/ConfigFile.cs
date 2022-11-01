@@ -181,5 +181,14 @@ namespace CodeStats
 
             return Path.Combine(configFilePath, "CodeStatsCustomExtensionMapping.json");
         }
+        
+        public static string GetUnsavedPulsesFilePath()
+        {
+            StringBuilder sbConfigFilePath = new StringBuilder(Win32.MAX_PATH);
+            Win32.SendMessage(PluginBase.nppData._nppHandle, (uint)NppMsg.NPPM_GETPLUGINSCONFIGDIR, Win32.MAX_PATH, sbConfigFilePath);
+            string configFilePath = sbConfigFilePath.ToString();
+
+            return Path.Combine(configFilePath, "CodeStatsPendingPulses.json");
+        }
     }
 }
