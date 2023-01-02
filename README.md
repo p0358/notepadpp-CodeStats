@@ -5,13 +5,15 @@ notepadpp-CodeStats
 
 Code::Stats - Write code, level up, show off! A free stats tracking service for programmers. This plugin enables XP tracking in Notepad++.
 
+To get started, you need to create an account at [codestats.net](https://codestats.net/).
+
 
 Installation
 ------------
 
 1. Inside Notepad++ open the Plugins Admin (`Plugins` → `Plugins Admin...`).
 
-2. Check the box next to `Code::Stats` in the list of plugins.
+2. Check the box next to `Code::Stats` in the list of plugins. (Note: If the plugin version in the list is outdated, you need to update your Notepad++ to the latest version)
 
 3. Click the `Install` button.
 
@@ -27,7 +29,7 @@ OR
 
 1. Go to [releases](https://github.com/p0358/notepadpp-CodeStats/releases) and download zip file for correct architecture of your Notepad++ installation.
 
-2. Put it in Notepad++ plugin dir, inside of `CodeStats` folder, for example (for x86): `C:\Program Files (x86)\Notepad++\plugins\CodeStats`, or (for x64): `C:\Program Files\Notepad++\plugins\CodeStats`.
+2. Put `CodeStats.dll` in Notepad++ plugin dir, inside of `CodeStats` folder, for example (for x86): `C:\Program Files (x86)\Notepad++\plugins\CodeStats`, or (for x64): `C:\Program Files\Notepad++\plugins\CodeStats`.
 
 3. Start/restart Notepad++.
 
