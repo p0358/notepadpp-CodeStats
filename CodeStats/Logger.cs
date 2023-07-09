@@ -1,3 +1,5 @@
+// #define SAVE_LOG_IN_TEMP_INSTEAD_OF_PLUGIN_DIR
+
 using Kbg.NppPluginNET.PluginInfrastructure;
 using System;
 using System.Collections.Concurrent;
@@ -135,10 +137,14 @@ namespace CodeStats
         {
             if (String.IsNullOrWhiteSpace(configDir))
             {
+#if SAVE_LOG_IN_TEMP_INSTEAD_OF_PLUGIN_DIR
+                configDir = System.Environment.GetEnvironmentVariable("TEMP");
+#else // BACKWARD COMPATIBLE
                 // get path of plugin configuration
                 StringBuilder sbIniFilePath = new StringBuilder(Win32.MAX_PATH);
                 Win32.SendMessage(PluginBase.nppData._nppHandle, (uint)NppMsg.NPPM_GETPLUGINSCONFIGDIR, Win32.MAX_PATH, sbIniFilePath);
                 configDir = sbIniFilePath.ToString();
+#endif
             }
             if (string.IsNullOrWhiteSpace(configDir)) return null;
 
@@ -151,10 +157,14 @@ namespace CodeStats
         {
             if (String.IsNullOrWhiteSpace(configDir))
             {
+#if SAVE_LOG_IN_TEMP_INSTEAD_OF_PLUGIN_DIR
+                configDir = System.Environment.GetEnvironmentVariable("TEMP");
+#else // BACKWARD COMPATIBLE
                 // get path of plugin configuration
                 StringBuilder sbIniFilePath = new StringBuilder(Win32.MAX_PATH);
                 Win32.SendMessage(PluginBase.nppData._nppHandle, (uint)NppMsg.NPPM_GETPLUGINSCONFIGDIR, Win32.MAX_PATH, sbIniFilePath);
                 configDir = sbIniFilePath.ToString();
+#endif
             }
             if (string.IsNullOrWhiteSpace(configDir)) return;
 
